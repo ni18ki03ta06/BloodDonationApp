@@ -222,9 +222,11 @@ docker run -p 5000:80 blood-donation-app
 
 This project is licensed under the MIT License - see LICENSE file for details.
 
-## 👥 Contributors
+## Author
+---
+Nikita Bansod
 
-- Your Name / Team Members
+
 
 ## 🤝 Contributing
 
@@ -238,7 +240,7 @@ This project is licensed under the MIT License - see LICENSE file for details.
 
 For questions or support, please contact: [nikitabansod22@gmail.com]
 
-**Last Updated:** June 2, 2026
+---
 
 
 
