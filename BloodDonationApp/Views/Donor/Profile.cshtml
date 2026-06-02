@@ -1,0 +1,184 @@
+@model BloodDonationApp.Models.Donor
+@{
+    Layout = "_UserLayout";
+    ViewData["Title"] = "My Profile";
+}
+
+<div class="animate-fade-in">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <h1 class="h2 mb-0">My Profile</h1>
+        <a asp-action="Dashboard" class="btn btn-secondary btn-sm">&larr; Back to Dashboard</a>
+    </div>
+
+    <div class="row">
+        <!-- Profile Form -->
+        <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow-sm p-4 h-100">
+                <h3 class="h4 mb-3 border-bottom pb-2 font-serif text-danger">Profile Details</h3>
+                <form asp-action="Profile" method="post">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                    <input type="hidden" asp-for="Id" />
+                    
+                    <div class="form-group mb-3">
+                        <label asp-for="Name" class="form-label text-uppercase small fw-bold text-danger"></label>
+                        <input asp-for="Name" class="form-control" required />
+                        <span asp-validation-for="Name" class="text-danger small"></span>
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label asp-for="BloodType" class="form-label text-uppercase small fw-bold text-danger">Blood Type</label>
+                        <select asp-for="BloodType" class="form-select" required>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+                        </select>
+                        <span asp-validation-for="BloodType" class="text-danger small"></span>
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label asp-for="Phone" class="form-label text-uppercase small fw-bold text-danger">Phone Number</label>
+                        <input asp-for="Phone" class="form-control" required />
+                        <span asp-validation-for="Phone" class="text-danger small"></span>
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label asp-for="Email" class="form-label text-uppercase small fw-bold text-danger"></label>
+                        <input asp-for="Email" class="form-control" type="email" required />
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label asp-for="City" class="form-label text-uppercase small fw-bold text-danger"></label>
+                        <input asp-for="City" class="form-control" required />
+                        <span asp-validation-for="City" class="text-danger small"></span>
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label asp-for="LastDonationDate" class="form-label text-uppercase small fw-bold text-danger">Last Donation Date</label>
+                        <input asp-for="LastDonationDate" class="form-control" type="date" />
+                        <span asp-validation-for="LastDonationDate" class="text-danger small"></span>
+                    </div>
+
+                    <input type="hidden" asp-for="IsAvailable" />
+                    
+                    <div class="form-group mt-4">
+                        <button type="submit" class="btn btn-primary w-100 py-3 text-uppercase">Save Profile Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Achievements Timeline -->
+        <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow-sm p-4 h-100">
+                <h3 class="h4 mb-3 border-bottom pb-2 font-serif text-danger">Achievements</h3>
+                
+                @{
+                    var badgeInfo = BloodDonationApp.Helpers.DonorBadgeHelper.GetBadge(Model.TotalDonations);
+                    var completedDonations = Model.DonationRecords != null 
+                        ? Model.DonationRecords.Where(r => r.Status == "Completed").OrderBy(r => r.DonationDate).ToList() 
+                        : new List<BloodDonationApp.Models.DonationRecord>();
+                }
+
+                <div class="text-center py-4 mb-4 border rounded" style="background-color: var(--primary-light); border-color: var(--primary-border) !important;">
+                    <div class="mb-2">
+                        <span class="badge @badgeInfo.ColorClass fs-5 px-4 py-2 shadow-sm" style="border-radius: 50px;">@badgeInfo.Name</span>
+                    </div>
+                    <h5 class="text-muted mt-3 mb-0">@Model.TotalDonations Total Donations</h5>
+                    
+                    @if (!badgeInfo.IsMaxTier)
+                    {
+                        <div class="px-4 mt-3">
+                            <div class="d-flex justify-content-between mb-1 small text-muted">
+                                <span>Progress to @badgeInfo.NextTierName</span>
+                                <span>@badgeInfo.DonationsNeeded more</span>
+                            </div>
+                            <div class="progress" style="height: 8px; border-radius: 4px; background-color: rgba(0,0,0,0.05);">
+                                <div class="progress-bar bg-danger" role="progressbar" style="width: @badgeInfo.ProgressPercentage.ToString("F0")%" aria-valuenow="@badgeInfo.ProgressPercentage.ToString("F0")" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <h4 class="h5 mb-3 font-serif">Donation Milestones</h4>
+                
+                <div class="position-relative border-start ps-4 ms-3 mt-3" style="border-color: var(--border-color) !important;">
+                    @{
+                        var milestones = new[]
+                        {
+                            new { Name = "New Donor", Threshold = 0, Desc = "Welcome to the donor community!" },
+                            new { Name = "First Drop", Threshold = 1, Desc = "Completed your first donation." },
+                            new { Name = "Regular Hero", Threshold = 3, Desc = "Reached 3 completed donations." },
+                            new { Name = "Blood Champion", Threshold = 6, Desc = "Reached 6 completed donations." },
+                            new { Name = "Lifesaver Legend", Threshold = 11, Desc = "Reached 11 completed donations." }
+                        };
+                    }
+
+                    @foreach (var m in milestones)
+                    {
+                        var isUnlocked = Model.TotalDonations >= m.Threshold;
+                        DateTime? unlockDate = null;
+                        if (isUnlocked)
+                        {
+                            if (m.Threshold == 0)
+                            {
+                                unlockDate = Model.CreatedAt;
+                            }
+                            else if (completedDonations.Count >= m.Threshold)
+                            {
+                                unlockDate = completedDonations[m.Threshold - 1].DonationDate;
+                            }
+                        }
+
+                        <div class="position-relative mb-4">
+                            <!-- Timeline Dot -->
+                            <div class="position-absolute" style="left: -33px; top: 2px;">
+                                @if (isUnlocked)
+                                {
+                                    <span class="badge bg-success rounded-circle d-flex align-items-center justify-content-center text-white" style="width: 18px; height: 18px; font-size: 10px; padding: 0;">
+                                        ✓
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary rounded-circle d-flex align-items-center justify-content-center text-white" style="width: 18px; height: 18px; font-size: 10px; padding: 0; background-color: var(--text-muted) !important;">
+                                        ✕
+                                    </span>
+                                }
+                            </div>
+                            
+                            <div>
+                                <h6 class="mb-0 fw-bold @(isUnlocked ? "text-dark" : "text-muted")">
+                                    @m.Name
+                                    @if (isUnlocked)
+                                    {
+                                        <span class="badge @(m.Threshold == 0 ? "bg-secondary" : m.Threshold <= 2 ? "bg-info text-dark" : m.Threshold <= 5 ? "bg-success" : m.Threshold <= 10 ? "bg-warning text-dark" : "bg-danger") ms-2 small" style="font-size: 0.7rem;">Unlocked</span>
+                                    }
+                                </h6>
+                                <p class="small text-muted mb-1">@m.Desc</p>
+                                @if (isUnlocked && unlockDate.HasValue)
+                                {
+                                    <small class="text-success fw-semibold d-block">Achieved on: @unlockDate.Value.ToString("yyyy-MM-dd")</small>
+                                }
+                                else
+                                {
+                                    <small class="text-muted d-block">Locked (@(m.Threshold) donations required)</small>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

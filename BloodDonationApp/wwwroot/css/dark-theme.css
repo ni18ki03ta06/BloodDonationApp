@@ -1,0 +1,36 @@
+/* dark-theme.css - Design tokens for Dark Mode (Red/Dark Navy theme) */
+
+[data-theme="dark"] {
+    /* Primary Accent: Brighter Red for readability in dark mode */
+    --primary: #E74C3C;          /* Vibrant Red */
+    --primary-hover: #C0392B;    /* Deep Red */
+    --primary-light: #3D1C1A;    /* Dark Red Tint */
+    --primary-border: #5C2621;   /* Dark Red Border */
+    
+    --success: #2ECC71;
+    --success-light: #1E3F2E;
+    --danger: #E74C3C;
+    --danger-light: #3D1C1A;
+    --warning: #F1C40F;          /* Bright Gold */
+    --warning-light: #3F371E;
+    --info: #3498DB;
+    --info-light: #1A364A;
+    
+    --bg-default: #0E0E1B;       /* Extra dark background */
+    --bg-card: #1A1A2E;          /* Dark navy/slate card background */
+    --bg-navbar: #1A1A2E;
+    --bg-sidebar: #0E0E1B;
+    
+    --border-color: #2D2D44;     /* Dark metallic border */
+    --text-primary: #F8F9FA;     /* Light Gray text */
+    --text-secondary: #CBD5E1;   /* Pale gray text */
+    --text-muted: #6B7280;       /* Darker muted text */
+    --text-on-dark: #F8F9FA;
+    
+    --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    --card-shadow-hover: 0 20px 30px rgba(0, 0, 0, 0.45);
+    
+    --glass-bg: rgba(26, 26, 46, 0.65);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+}

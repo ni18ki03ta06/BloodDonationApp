@@ -1,0 +1,65 @@
+@model IEnumerable<BloodDonationApp.Models.BloodRequest>
+
+@{
+    ViewData["Title"] = "Blood Requests";
+}
+
+<div class="container mt-4 animate-fade-in">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <h1 class="h2 mb-0">Current Blood Requests</h1>
+        <a href="/" class="btn btn-secondary btn-sm">&larr; Back to Home</a>
+    </div>
+
+    <div class="card border-0 shadow-sm p-4">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Patient Name</th>
+                        <th>Blood Type</th>
+                        <th>Units</th>
+                        <th>Hospital</th>
+                        <th>City</th>
+                        <th>Required Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        @foreach (var item in Model) {
+                            <tr>
+                                <td><strong>@(item.IsAnonymous ? "Anonymous Patient" : item.PatientName)</strong></td>
+                                <td><span class="badge bg-danger fs-6">@item.BloodType</span></td>
+                                <td><strong>@item.Units</strong> Unit(s)</td>
+                                <td>@item.Hospital</td>
+                                <td>@item.City</td>
+                                <td>@item.RequiredDate.ToString("yyyy-MM-dd")</td>
+                                <td>
+                                    @if (item.Status == "Pending")
+                                    {
+                                        <span class="badge bg-warning text-dark text-uppercase">Pending</span>
+                                    }
+                                    else if (item.Status == "Fulfilled")
+                                    {
+                                        <span class="badge bg-success text-uppercase">Fulfilled</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger text-uppercase">@item.Status</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">No active blood requests found.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

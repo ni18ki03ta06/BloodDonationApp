@@ -1,0 +1,128 @@
+@model IEnumerable<BloodDonationApp.Models.BloodInventory>
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Manage Blood Inventory";
+
+    // Stock Status Helper
+    (string label, string bgBadge, string textClass, string bgLight) GetStockStatus(int units)
+    {
+        if (units < 5)
+        {
+            return ("Critical Stock", "bg-danger text-white", "text-danger", "#FFF5F5");
+        }
+        else if (units <= 15)
+        {
+            return ("Low Stock", "bg-warning text-dark", "text-warning-dark", "#FFFDF0");
+        }
+        else
+        {
+            return ("Good Standing", "bg-success text-white", "text-success", "#F4FAF6");
+        }
+    }
+}
+
+<style>
+    .text-burgundy {
+        color: #5C1A1A;
+    }
+    .text-warning-dark {
+        color: #B5894A;
+    }
+    .card-title-serif {
+        font-family: 'Times New Roman', Times, serif;
+        font-weight: bold;
+    }
+    .inventory-table th {
+        font-family: 'Times New Roman', serif;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 1px;
+        color: #5C1A1A;
+        border-bottom: 2px solid #E8DDD5;
+    }
+    .inventory-table td {
+        vertical-align: middle;
+        border-bottom: 1px solid #E8DDD5;
+    }
+    .blood-badge-lg {
+        font-size: 1.25rem;
+        font-weight: bold;
+        padding: 6px 12px;
+    }
+    .input-units {
+        width: 100px;
+        text-align: center;
+        border-color: #E8DDD5;
+    }
+    .input-units:focus {
+        border-color: #5C1A1A;
+        box-shadow: 0 0 0 0.2rem rgba(92, 26, 26, 0.15);
+    }
+    .btn-update {
+        background-color: #5C1A1A;
+        color: #FFFFFF;
+        border: none;
+    }
+    .btn-update:hover {
+        background-color: #441212;
+        color: #FFFFFF;
+    }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+    <h1 class="card-title-serif text-burgundy mb-0">Blood Inventory Stock Management</h1>
+    <span class="badge bg-secondary py-2 px-3 text-uppercase">Admin Access</span>
+</div>
+
+<div class="card border-0 shadow-sm p-4 bg-white mb-4">
+    <p class="text-muted">
+        Adjust current stock level units available for all 8 standard blood types. System reservations and stock levels will recalculate instantly.
+    </p>
+
+    <div class="table-responsive">
+        <table class="table table-hover inventory-table">
+            <thead>
+                <tr>
+                    <th>Blood Type</th>
+                    <th>Stock Status</th>
+                    <th class="text-center">Available Units</th>
+                    <th class="text-center">Reserved Units</th>
+                    <th>Last Updated</th>
+                    <th class="text-center" style="width: 250px;">Update Stock</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    var status = GetStockStatus(item.UnitsAvailable);
+                    <tr id="inventory-row-@item.Id" data-blood-type="@item.BloodType">
+                        <td>
+                            <span class="badge bg-danger blood-badge-lg shadow-sm">@item.BloodType</span>
+                        </td>
+                        <td>
+                            <span class="badge @status.bgBadge px-3 py-2 font-monospace status-badge">@status.label</span>
+                        </td>
+                        <td class="text-center fw-bold fs-5 @status.textClass font-monospace stock-units">
+                            @item.UnitsAvailable
+                        </td>
+                        <td class="text-center text-muted font-monospace units-reserved">
+                            @item.UnitsReserved
+                        </td>
+                        <td class="small text-muted last-updated">
+                            @item.LastUpdated.ToString("MMMM dd, yyyy HH:mm:ss")
+                        </td>
+                        <td class="text-center">
+                            <form asp-controller="Admin" asp-action="UpdateInventory" method="post" class="d-flex justify-content-center align-items-center">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@item.Id" />
+                                <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                                <input type="number" name="units" value="@item.UnitsAvailable" min="0" class="form-control form-control-sm input-units me-2 input-units-field" required />
+                                <button type="submit" class="btn btn-sm btn-update px-3 text-uppercase fw-bold">Set</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

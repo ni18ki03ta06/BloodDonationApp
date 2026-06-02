@@ -1,0 +1,212 @@
+@model IEnumerable<BloodDonationApp.Models.DonationRecord>
+@{
+    Layout = "_UserLayout";
+    ViewData["Title"] = "Donation History";
+    var completedCount = Model.Count(r => r.Status == "Completed");
+    var isFirstDropUnlocked = completedCount >= 1;
+    var isLifeSaverUnlocked = completedCount >= 3;
+    var isHeroUnlocked = completedCount >= 5;
+    var isEmergencyUnlocked = Model.Any(r => r.Status == "Completed" && r.Notes != null && r.Notes.Contains("Emergency", StringComparison.OrdinalIgnoreCase));
+
+    // Aggregate completed donations per month over the past 12 months
+    var today = DateTime.Today;
+    var monthlyDonationCounts = new List<int>();
+    var monthlyDonationLabels = new List<string>();
+
+    for (int i = 11; i >= 0; i--)
+    {
+        var monthDate = today.AddMonths(-i);
+        var label = monthDate.ToString("MMM yyyy");
+        var count = Model.Count(r => r.DonationDate.Year == monthDate.Year && 
+                                     r.DonationDate.Month == monthDate.Month && 
+                                     string.Equals(r.Status, "Completed", StringComparison.OrdinalIgnoreCase));
+        monthlyDonationLabels.Add(label);
+        monthlyDonationCounts.Add(count);
+    }
+}
+
+<div class="animate-fade-in">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <h1 class="h2 mb-0">Donation History & Badges</h1>
+        <a asp-action="Dashboard" class="btn btn-secondary btn-sm">&larr; Back to Dashboard</a>
+    </div>
+
+    <!-- Badges Section -->
+    <div class="card border-0 shadow-sm p-4 mb-4">
+        <h3 class="h4 mb-4 font-serif text-danger">My Earned Badges</h3>
+        <div class="row text-center g-3">
+            <div class="col-md-3 col-sm-6">
+                <div class="p-4 border rounded h-100 transition-all shadow-sm @(isFirstDropUnlocked ? "bg-light border-danger" : "opacity-50")" style="background-color: var(--bg-card) !important; border-color: var(--border-color) !important;">
+                    <div style="font-size: 2.8rem;" class="mb-2">🩸</div>
+                    <h5 class="fw-bold mb-1">First Drop</h5>
+                    <span class="badge @(isFirstDropUnlocked ? "bg-success" : "bg-secondary") text-uppercase fw-bold mt-1" style="font-size: 0.7rem;">
+                        @(isFirstDropUnlocked ? "Unlocked" : "Locked")
+                    </span>
+                    <p class="text-muted small mt-3 mb-0">Awarded for completing 1 successful donation.</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="p-4 border rounded h-100 transition-all shadow-sm @(isLifeSaverUnlocked ? "bg-light border-danger" : "opacity-50")" style="background-color: var(--bg-card) !important; border-color: var(--border-color) !important;">
+                    <div style="font-size: 2.8rem;" class="mb-2">❤️</div>
+                    <h5 class="fw-bold mb-1">Life Saver</h5>
+                    <span class="badge @(isLifeSaverUnlocked ? "bg-success" : "bg-secondary") text-uppercase fw-bold mt-1" style="font-size: 0.7rem;">
+                        @(isLifeSaverUnlocked ? "Unlocked" : "Locked")
+                    </span>
+                    <p class="text-muted small mt-3 mb-0">Awarded for completing 3 successful blood donations.</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="p-4 border rounded h-100 transition-all shadow-sm @(isHeroUnlocked ? "bg-light border-danger" : "opacity-50")" style="background-color: var(--bg-card) !important; border-color: var(--border-color) !important;">
+                    <div style="font-size: 2.8rem;" class="mb-2">🏆</div>
+                    <h5 class="fw-bold mb-1">Hero of Donora</h5>
+                    <span class="badge @(isHeroUnlocked ? "bg-success" : "bg-secondary") text-uppercase fw-bold mt-1" style="font-size: 0.7rem;">
+                        @(isHeroUnlocked ? "Unlocked" : "Locked")
+                    </span>
+                    <p class="text-muted small mt-3 mb-0">Awarded for completing 5 successful donations.</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="p-4 border rounded h-100 transition-all shadow-sm @(isEmergencyUnlocked ? "bg-light border-danger" : "opacity-50")" style="background-color: var(--bg-card) !important; border-color: var(--border-color) !important;">
+                    <div style="font-size: 2.8rem;" class="mb-2">⚡</div>
+                    <h5 class="fw-bold mb-1">Emergency Responder</h5>
+                    <span class="badge @(isEmergencyUnlocked ? "bg-success" : "bg-secondary") text-uppercase fw-bold mt-1" style="font-size: 0.7rem;">
+                        @(isEmergencyUnlocked ? "Unlocked" : "Locked")
+                    </span>
+                    <p class="text-muted small mt-3 mb-0">Awarded for responding to an active Emergency request.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analytics Chart Section -->
+    <div class="card border-0 shadow-sm p-4 mb-4">
+        <h3 class="h4 mb-3 font-serif text-danger">My Donation Trend</h3>
+        <p class="text-muted small">Tracking your completed donations over the past 12 months</p>
+        <div style="height: 250px; position: relative;">
+            <canvas id="donationTrendChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Donation Table -->
+    <div class="card border-0 shadow-sm p-4">
+        <h3 class="h4 mb-4 font-serif text-danger">Donation Records</h3>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Donation Date</th>
+                        <th>Blood Type</th>
+                        <th>Units</th>
+                        <th>Hospital / Location</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        @foreach (var record in Model)
+                        {
+                            <tr>
+                                <td><strong>@record.DonationDate.ToString("yyyy-MM-dd")</strong></td>
+                                <td><span class="badge bg-danger fs-6">@record.BloodType</span></td>
+                                <td>@record.Units Unit(s)</td>
+                                <td>@record.Hospital, @record.City</td>
+                                <td>
+                                    @if (record.Status == "Completed")
+                                    {
+                                        <span class="badge bg-success text-uppercase">Completed</span>
+                                    }
+                                    else if (record.Status == "Cancelled")
+                                    {
+                                        <span class="badge bg-danger text-uppercase">Cancelled</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning text-dark text-uppercase">Pending</span>
+                                    }
+                                </td>
+                                <td class="text-end">
+                                    @if (record.Status == "Completed")
+                                    {
+                                        <a asp-action="Certificate" asp-route-donationId="@record.Id" class="btn btn-sm btn-outline-dark py-1">
+                                            <i class="bi bi-award-fill me-1 text-danger"></i> Certificate
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small">-</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">No historical donation records found.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        $(document).ready(function () {
+            const labels = @Html.Raw(Json.Serialize(monthlyDonationLabels));
+            const data = @Html.Raw(Json.Serialize(monthlyDonationCounts));
+
+            const ctx = document.getElementById('donationTrendChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Donations Completed',
+                        data: data,
+                        borderColor: '#C0392B',
+                        backgroundColor: 'rgba(192, 57, 43, 0.05)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointBackgroundColor: '#C0392B',
+                        pointHoverRadius: 7,
+                        pointHoverBackgroundColor: '#C0392B',
+                        pointHoverBorderColor: '#fff',
+                        pointHoverBorderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0,0,0,0.05)'
+                            },
+                            ticks: {
+                                stepSize: 1,
+                                precision: 0
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+}

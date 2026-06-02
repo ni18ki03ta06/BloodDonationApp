@@ -1,0 +1,132 @@
+@model BloodDonationApp.Models.Feedback
+@{
+    ViewData["Title"] = "Contact & Helpdesk";
+}
+
+<div class="container mt-5">
+    <div class="border-bottom pb-2 mb-4">
+        <h1 style="font-family: 'Times New Roman', serif;">Contact Us & Helpdesk</h1>
+        <p class="text-muted">Have questions, feedback, or need assistance? Send us a message and rate your experience.</p>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert" id="successAlert">
+            <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert" id="errorAlert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row mt-4">
+        <div class="col-md-7">
+            <div class="card border-0 shadow-sm p-4" style="background-color: #FFFFFF; border: 1px solid #E8DDD5 !important;">
+                <h3 style="font-family: 'Times New Roman', serif;" class="mb-3 text-dark">Send Feedback</h3>
+                <form asp-controller="Home" asp-action="SubmitFeedback" method="post" id="feedbackForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="DonorId" />
+
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label fw-bold">Full Name</label>
+                        <input asp-for="Name" class="form-control" placeholder="Enter your name" id="inputName" required />
+                        <span asp-validation-for="Name" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label fw-bold">Email Address</label>
+                        <input asp-for="Email" type="email" class="form-control" placeholder="Enter your email" id="inputEmail" required />
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Subject" class="form-label fw-bold">Subject</label>
+                        <input asp-for="Subject" class="form-control" placeholder="What is this regarding?" id="inputSubject" required />
+                        <span asp-validation-for="Subject" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Message" class="form-label fw-bold">Message</label>
+                        <textarea asp-for="Message" class="form-control" rows="4" placeholder="Type your message here..." id="inputMessage" required></textarea>
+                        <span asp-validation-for="Message" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold d-block">Rating</label>
+                        <div class="d-flex align-items-center gap-2" id="starRatingContainer">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                <i class="bi bi-star-fill text-muted fs-3 star-btn" data-value="@i" style="cursor: pointer; transition: color 0.15s ease;" id="starBtn_@i"></i>
+                            }
+                        </div>
+                        <input type="hidden" asp-for="Rating" id="ratingValue" value="5" />
+                        <span asp-validation-for="Rating" class="text-danger small" id="ratingValidationMsg"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary text-uppercase px-4 py-2 animate-btn" style="background-color: #7D2B2B; border-color: #7D2B2B; border-radius: 4px;" id="btnSubmitFeedback">
+                        Submit Feedback
+                    </button>
+                </form>
+            </div>
+        </div>
+        <div class="col-md-5">
+            <div class="p-4 rounded" style="background-color: #F5ECD7; border: 1px solid #E8DDD5; height: 100%;">
+                <h3 style="font-family: 'Times New Roman', serif;">Our Office</h3>
+                <p class="mb-2"><strong>Address:</strong> 123 Health Street, Medical City, 54321</p>
+                <p class="mb-2"><strong>Phone:</strong> +1 (555) 123-4567</p>
+                <p class="mb-2"><strong>Email:</strong> support@blooddonation.org</p>
+                
+                <hr style="border-color: #E8DDD5;" />
+
+                <h3 class="mt-4" style="font-family: 'Times New Roman', serif;">Emergency Support</h3>
+                <p>For urgent blood requests, please call our 24/7 hotline:</p>
+                <h4 class="text-danger fw-bold" style="font-family: 'Times New Roman', serif;">1-800-BLOOD-HELP</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function () {
+            // Star rating click handler
+            $('.star-btn').on('click', function () {
+                var ratingVal = $(this).data('value');
+                $('#ratingValue').val(ratingVal);
+                updateStars(ratingVal);
+            });
+
+            // Star hover effect
+            $('.star-btn').hover(
+                function() {
+                    var hoverVal = $(this).data('value');
+                    updateStars(hoverVal);
+                },
+                function() {
+                    var currentVal = $('#ratingValue').val();
+                    updateStars(currentVal);
+                }
+            );
+
+            function updateStars(val) {
+                $('.star-btn').each(function () {
+                    var starVal = $(this).data('value');
+                    if (starVal <= val) {
+                        $(this).removeClass('text-muted').addClass('text-warning');
+                    } else {
+                        $(this).removeClass('text-warning').addClass('text-muted');
+                    }
+                });
+            }
+
+            // Initialize stars to default value (5)
+            updateStars($('#ratingValue').val());
+        });
+    </script>
+}

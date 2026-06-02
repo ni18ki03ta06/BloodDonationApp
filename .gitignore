@@ -1,0 +1,55 @@
+## Ignore Visual Studio temporary files, build results, and user-specific settings
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# User-specific files (MonoDevelop/Xamarin Studio)
+*.userprefs
+
+# Mono auto generated files
+mono_crash.*
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Re]leasePublic/
+x64/
+x86/
+SDKRedirects/
+bld/
+[Bb]in/
+[Oo]bj/
+[Log]/
+
+# Visual Studio 2015/2017/2019/2022 cache directory
+.vs/
+# File security data containing table of contents
+secdata.dat
+
+# SQL Server files
+*.mdf
+*.ldf
+*.ndf
+
+# SQLite databases (local dev DBs)
+*.db-shm
+*.db-wal
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# Personal environment settings
+.env
+.env.local
+
+# Rider
+.idea/
+
+# Mac OS files
+.DS_Store

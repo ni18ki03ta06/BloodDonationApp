@@ -1,0 +1,43 @@
+@{
+    ViewData["Title"] = "Admin Login - Donora";
+}
+
+<div class="container mt-5 animate-fade-in">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card border-0 shadow-lg">
+                <div class="card-header text-center py-4 bg-transparent border-bottom">
+                    <h2 class="mb-0 text-danger font-serif" style="letter-spacing: 2px;">DONORA</h2>
+                    <small class="text-uppercase text-muted" style="letter-spacing: 1px;">Admin Portal</small>
+                </div>
+                <div class="card-body p-4">
+                    <h4 class="text-center mb-4 font-serif text-secondary" style="font-style: italic;">Sign In as Administrator</h4>
+                    
+                    <form asp-action="AdminLogin" method="post">
+                        @Html.AntiForgeryToken()
+                        
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="form-group mb-3">
+                            <label class="form-label text-uppercase small fw-bold text-danger">Email Address</label>
+                            <input name="email" class="form-control" type="email" placeholder="admin@blood.org" required />
+                        </div>
+                        
+                        <div class="form-group mb-4">
+                            <label class="form-label text-uppercase small fw-bold text-danger">Password</label>
+                            <input name="password" class="form-control" type="password" placeholder="••••••••" required />
+                        </div>
+                        
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary w-100 py-2">Enter Portal</button>
+                        </div>
+                    </form>
+                    
+                    <div class="mt-4 text-center">
+                        <a href="/" class="small fw-bold text-decoration-none text-muted">&larr; Back to Landing Page</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

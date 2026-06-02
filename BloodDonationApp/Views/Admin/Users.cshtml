@@ -1,0 +1,53 @@
+@model IEnumerable<BloodDonationApp.Models.Donor>
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "User Accounts";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+    <h1 style="font-family: 'Times New Roman', serif;">User Accounts Management</h1>
+    <span class="badge bg-secondary py-2 px-3 text-uppercase">Admin Portal</span>
+</div>
+
+<div class="card border-0 shadow-sm p-4">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>User / Donor Name</th>
+                    <th>Email Address</th>
+                    <th>Associated Role</th>
+                    <th>Phone (Password)</th>
+                    <th>Location</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Hardcoded Admin account -->
+                <tr>
+                    <td><strong>Administrator</strong></td>
+                    <td>admin@blood.org</td>
+                    <td><span class="badge bg-dark">Admin</span></td>
+                    <td><code>admin123</code> (secured)</td>
+                    <td>Global Headquarters</td>
+                    <td><span class="badge bg-success">Active</span></td>
+                </tr>
+                @foreach (var user in Model)
+                {
+                    <tr>
+                        <td><strong>@user.Name</strong></td>
+                        <td>@user.Email</td>
+                        <td><span class="badge bg-secondary">User (Donor)</span></td>
+                        <td><code>@user.Phone</code></td>
+                        <td>@user.City</td>
+                        <td>
+                            <span class="badge @(user.IsAvailable ? "bg-success" : "bg-warning")">
+                                @(user.IsAvailable ? "Available" : "Busy")
+                            </span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

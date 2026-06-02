@@ -1,0 +1,114 @@
+@model IEnumerable<BloodDonationApp.Models.QrScanLog>
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "QR Scan Verification Audit History";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <div>
+            <h2 class="fw-bold" style="font-family: 'Times New Roman', Georgia, serif; color: #3D1212;">
+                QR Scan History Log
+            </h2>
+            <p class="text-muted mb-0">Audit log of all digital ID card verification scans conducted by administrators</p>
+        </div>
+        <div>
+            <a asp-action="Index" class="btn btn-outline-secondary text-uppercase fw-bold font-monospace" style="font-size: 0.75rem;">
+                <i class="bi bi-house-door me-1"></i> Dashboard
+            </a>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+        <div class="card-header bg-dark text-white py-3">
+            <h5 class="card-title mb-0 font-monospace text-uppercase" style="letter-spacing: 1px; font-size: 0.9rem;">
+                <i class="bi bi-clock-history text-gold me-2"></i> Verification Scan Audit Trail
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            @if (Model == null || !Model.Any())
+            {
+                <div class="text-center py-5">
+                    <i class="bi bi-qr-code-scan text-muted mb-3" style="font-size: 3rem;"></i>
+                    <h5 class="text-muted fw-bold">No Scans Recorded Yet</h5>
+                    <p class="text-muted small">Logs will automatically appear here when donor QR codes are scanned and verified.</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped align-middle mb-0">
+                        <thead class="table-dark font-monospace text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                            <tr>
+                                <th scope="col" class="ps-4">Timestamp</th>
+                                <th scope="col">Operator</th>
+                                <th scope="col">Donor</th>
+                                <th scope="col">Blood Group</th>
+                                <th scope="col" class="text-center">Status</th>
+                                <th scope="col" class="pe-4">Scan Location / Context</th>
+                            </tr>
+                        </thead>
+                        <tbody style="font-size: 0.85rem;">
+                            @foreach (var log in Model)
+                            {
+                                <tr>
+                                    <td class="ps-4 font-monospace fw-bold text-secondary">
+                                        @log.ScannedAt.ToString("yyyy-MM-dd HH:mm:ss")
+                                    </td>
+                                    <td class="fw-bold">
+                                        <i class="bi bi-person-badge text-muted me-1"></i> @log.ScannedBy
+                                    </td>
+                                    <td>
+                                        @if (log.Donor != null)
+                                        {
+                                            <a asp-action="EditDonor" asp-route-id="@log.DonorId" class="text-dark fw-bold text-decoration-none hover-gold">
+                                                @log.Donor.Name
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-danger fw-bold"><i class="bi bi-shield-slash me-1"></i> Invalid Token Scan</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (log.Donor != null)
+                                        {
+                                            <span class="badge bg-danger">@log.Donor.BloodType</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        @if (log.IsValid)
+                                        {
+                                            <span class="badge bg-success py-2 px-3 text-uppercase font-monospace border border-success" style="font-size: 0.65rem;">
+                                                <i class="bi bi-check-circle-fill me-1"></i> Valid / Verified
+                                            </span>
+                                        }
+                                        else if (log.Donor != null)
+                                        {
+                                            <span class="badge bg-warning text-dark py-2 px-3 text-uppercase font-monospace border border-warning" style="font-size: 0.65rem;">
+                                                <i class="bi bi-exclamation-triangle-fill me-1"></i> Unverified Profile
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger py-2 px-3 text-uppercase font-monospace border border-danger" style="font-size: 0.65rem;">
+                                                <i class="bi bi-x-circle-fill me-1"></i> Invalid Token
+                                            </span>
+                                        }
+                                    </td>
+                                    <td class="pe-4 text-muted font-monospace small text-truncate" style="max-width: 300px;" title="@log.Location">
+                                        @log.Location
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

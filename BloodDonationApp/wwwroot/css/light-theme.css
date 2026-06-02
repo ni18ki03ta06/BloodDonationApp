@@ -1,0 +1,36 @@
+/* light-theme.css - Design tokens for Light Mode (Red/Dark Navy theme) */
+
+:root, [data-theme="light"] {
+    /* Primary Accent: Deep Red */
+    --primary: #C0392B;          /* Vibrant Deep Red */
+    --primary-hover: #962D22;    /* Darker Deep Red */
+    --primary-light: #FDEDEC;    /* Soft Red Tint */
+    --primary-border: #FADBD8;   /* Light Red Border */
+    
+    --success: #27AE60;          /* Emerald Green */
+    --success-light: #E8F8F5;
+    --danger: #C0392B;           /* Deep Red matching branding */
+    --danger-light: #FDEDEC;
+    --warning: #D4AC0D;          /* Gold highlight */
+    --warning-light: #FEF9E7;
+    --info: #2980B9;             /* Medical Blue */
+    --info-light: #EBF5FB;
+    
+    --bg-default: #F8F9FA;       /* Accent Light Gray/White background */
+    --bg-card: #FFFFFF;          /* Pure White Card */
+    --bg-navbar: #FFFFFF;
+    --bg-sidebar: #1A1A2E;       /* Dark Blue/Slate Sidebar background */
+    
+    --border-color: #E5E7EB;     /* Soft border */
+    --text-primary: #1A1A2E;     /* Dark Navy text */
+    --text-secondary: #4A4A6A;   /* Slate/Gray text */
+    --text-muted: #9CA3AF;       /* Muted text */
+    --text-on-dark: #F8F9FA;     /* Ivory/Light Gray text */
+    
+    --card-shadow: 0 4px 20px -2px rgba(26, 26, 46, 0.05), 0 2px 8px -1px rgba(26, 26, 46, 0.03);
+    --card-shadow-hover: 0 20px 25px -5px rgba(26, 26, 46, 0.1), 0 10px 10px -5px rgba(26, 26, 46, 0.04);
+    
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.4);
+    --glass-shadow: 0 8px 32px 0 rgba(26, 26, 46, 0.08);
+}

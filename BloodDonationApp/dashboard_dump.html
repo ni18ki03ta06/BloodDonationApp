@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Donor Dashboard - Donora Donor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="/css/site.css?v=jw49zX-7AJJCy5FTcY8aBAaBNpZ3baOS2x3X_Opu9Co" />
+</head>
+<body>
+    <div class="d-flex" id="wrapper">
+        <!-- Sidebar -->
+        <div class="bg-dark-editorial border-right" id="sidebar-wrapper">
+            <div class="sidebar-heading text-center py-4">
+                <h3 class="mb-0 text-gold text-uppercase" style="letter-spacing: 2px;">Donora</h3>
+                <small class="text-muted text-uppercase" style="color: #8C7B75 !important;">Donor Portal</small>
+            </div>
+            <div class="list-group list-group-flush sidebar-nav">
+                <a class="list-group-item list-group-item-action text-white" href="/Donor/Dashboard">
+                    Dashboard
+                </a>
+                <a class="list-group-item list-group-item-action text-white" href="/Donor/Profile">
+                    My Profile
+                </a>
+                <a class="list-group-item list-group-item-action text-white" href="/Donor/Donate">
+                    Donate Blood
+                </a>
+                <a class="list-group-item list-group-item-action text-white" href="/BloodRequest/Create">
+                    Request Blood
+                </a>
+                <a class="list-group-item list-group-item-action text-white" href="/Donor/Search">
+                    Search Donor
+                </a>
+                <a class="list-group-item list-group-item-action text-white" href="/Donor/History">
+                    Donation History
+                </a>
+                <a class="list-group-item list-group-item-action text-white mt-auto bg-dark-danger" href="/Account/Logout">
+                    Logout
+                </a>
+            </div>
+        </div>
+        <!-- Page Content -->
+        <div id="page-content-wrapper" class="w-100">
+            <nav class="navbar navbar-expand-lg navbar-dark border-bottom py-3">
+                <div class="container-fluid px-4">
+                    <span class="navbar-text text-white">
+                        Welcome, <strong>Shravani</strong> (Donor)
+                    </span>
+                    <div class="ms-auto">
+                        <a class="btn btn-outline-light btn-sm text-uppercase" href="/Account/Logout">Logout</a>
+                    </div>
+                </div>
+            </nav>
+            <div class="container-fluid p-4">
+                
+<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+    <h1 style="font-family: 'Times New Roman', serif;">Donor Dashboard</h1>
+    <span class="badge bg-danger py-2 px-3 text-uppercase">Donor Portal</span>
+</div>
+
+<!-- Welcome Section -->
+<div class="card border-0 shadow-sm p-4 mb-4 bg-white">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h2 style="font-family: 'Times New Roman', serif; font-style: italic;" class="mb-2">Welcome back, Shravani!</h2>
+            <p class="text-muted mb-0">Thank you for being part of the Donora community. Your contributions save lives every day.</p>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+            <a class="btn btn-primary text-uppercase px-4" href="/Donor/Donate">Toggle Availability</a>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Row -->
+<div class="row mb-4">
+    <!-- Blood Type -->
+    <div class="col-md-3 mb-3">
+        <div class="card bg-white border-0 shadow-sm text-center p-3 h-100">
+            <h6 class="text-uppercase small fw-bold text-muted mb-2">My Blood Group</h6>
+            <h2 class="text-danger mb-0" style="font-family: 'Times New Roman', serif; font-weight: bold;">O&#x2B;</h2>
+            <small class="text-muted mt-2">Required for matching</small>
+        </div>
+    </div>
+    
+    <!-- Status -->
+    <div class="col-md-3 mb-3">
+        <div class="card bg-white border-0 shadow-sm text-center p-3 h-100">
+            <h6 class="text-uppercase small fw-bold text-muted mb-2">Donation Status</h6>
+            <h2 class="mb-0 text-warning" style="font-family: 'Times New Roman', serif; font-weight: bold;">
+                Busy
+            </h2>
+            <small class="text-muted mt-2">Hidden in search</small>
+        </div>
+    </div>
+
+    <!-- Total Donations -->
+    <div class="col-md-3 mb-3">
+        <div class="card bg-white border-0 shadow-sm text-center p-3 h-100">
+            <h6 class="text-uppercase small fw-bold text-muted mb-2">Total Donations</h6>
+            <h2 class="text-primary mb-0" style="font-family: 'Times New Roman', serif; font-weight: bold;">4</h2>
+            <small class="text-muted mt-2">Milestone: <strong>Life Saver</strong></small>
+        </div>
+    </div>
+
+    <!-- Eligibility -->
+    <div class="col-md-3 mb-3">
+        <div class="card bg-white border-0 shadow-sm text-center p-3 h-100">
+            <h6 class="text-uppercase small fw-bold text-muted mb-2">Next Eligibility Date</h6>
+            <h4 class="mb-0 text-muted" style="font-family: 'Times New Roman', serif; font-weight: bold; font-size: 1.25rem; margin-top: 5px;">
+                2026-07-16
+            </h4>
+            <small class="text-muted mt-2">Last: 2026-05-21</small>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Quick Actions -->
+    <div class="col-md-6 mb-4">
+        <div class="card border-0 shadow-sm p-4 h-100 bg-white">
+            <h3 style="font-family: 'Times New Roman', serif;" class="mb-3 border-bottom pb-2">Quick Actions</h3>
+            <div class="d-grid gap-2">
+                <a class="btn btn-outline-dark text-start p-3 text-uppercase small font-monospace" href="/Donor/Profile">
+                    &rarr; Edit My Profile Details
+                </a>
+                <a class="btn btn-outline-dark text-start p-3 text-uppercase small font-monospace" href="/BloodRequest/Create">
+                    &rarr; Submit a Blood Request
+                </a>
+                <a class="btn btn-outline-dark text-start p-3 text-uppercase small font-monospace" href="/Donor/Search">
+                    &rarr; Search Active Donors
+                </a>
+                <a class="btn btn-outline-dark text-start p-3 text-uppercase small font-monospace" href="/Donor/History">
+                    &rarr; View Donation Badges & History
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Donation Guidelines -->
+    <div class="col-md-6 mb-4">
+        <div class="card border-0 shadow-sm p-4 h-100 bg-white">
+            <h3 style="font-family: 'Times New Roman', serif;" class="mb-3 border-bottom pb-2">Donation Guidelines</h3>
+            <ul class="text-muted small">
+                <li class="mb-2">Ensure you are well-hydrated and have had a healthy meal before donating.</li>
+                <li class="mb-2">You must weigh at least 110 lbs (50 kg) and be in good general health.</li>
+                <li class="mb-2">A minimum interval of 56 days is required between whole blood donations.</li>
+                <li class="mb-2">Bring a valid government-issued photo ID to the donation clinic.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/site.js?v=Carv6GIpKIw8qloahfv9MzQHMkDCoubLTLeQ9P1ktOo"></script>
+    
+</body>
+</html>

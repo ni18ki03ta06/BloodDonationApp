@@ -1,0 +1,463 @@
+@using BloodDonationApp.Controllers
+@model AdminDashboardViewModel
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<div class="animate-fade-in">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <h1 class="h2 mb-0 admin-page-title">Dashboard Overview</h1>
+        <span class="badge bg-danger py-2 px-3 text-uppercase font-monospace badge-admin-access">Admin Access Granted</span>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm text-center p-3 h-100 metric-card danger">
+                <h6 class="text-uppercase small fw-bold text-muted mb-2">Emergency Cases</h6>
+                <h2 class="text-danger mb-0 font-serif font-bold">@ViewBag.EmergencyCount</h2>
+                <small class="text-muted mt-2">Active Emergency Requests</small>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm text-center p-3 h-100 metric-card warning">
+                <h6 class="text-uppercase small fw-bold text-muted mb-2">Pending Requests</h6>
+                <h2 class="text-warning mb-0 font-serif font-bold">@ViewBag.PendingCount</h2>
+                <small class="text-muted mt-2">Awaiting Review</small>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm text-center p-3 h-100 metric-card success">
+                <h6 class="text-uppercase small fw-bold text-muted mb-2">Approved Requests</h6>
+                <h2 class="text-success mb-0 font-serif font-bold">@ViewBag.ApprovedCount</h2>
+                <small class="text-muted mt-2">Approved or Completed</small>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm text-center p-3 h-100 metric-card info">
+                <h6 class="text-uppercase small fw-bold text-muted mb-2">Total Donors</h6>
+                <h2 class="text-primary mb-0 font-serif font-bold">@ViewBag.TotalDonors</h2>
+                <small class="text-muted mt-2">Registered in Donora</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Inventory Stock Heatmap -->
+    <partial name="_BloodInventoryHeatmap" />
+
+    <!-- AI Recommendation Row -->
+    <div class="card border-0 shadow-sm p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-4">
+            <h3 class="h5 mb-0 fw-bold font-serif text-danger admin-section-heading">
+                <i class="bi bi-cpu-fill text-danger me-2"></i> AI-Powered Donor Recommendations
+            </h3>
+            <span class="badge bg-danger text-uppercase px-3 py-2 shadow-sm font-monospace" style="font-size: 0.75rem;">Real-time Matching</span>
+        </div>
+        
+        @if (Model.ActiveRecommendations == null || !Model.ActiveRecommendations.Any())
+        {
+            <div class="alert alert-light border-0 py-4 text-center mb-0" style="background-color: var(--primary-light);">
+                <i class="bi bi-check-circle-fill text-success fs-3 d-block mb-2"></i>
+                <h5 class="fw-bold text-dark mb-1 font-serif">No Active Pending Requests</h5>
+                <p class="text-muted small mb-0">All blood requests are currently fulfilled or resolved. Good job!</p>
+            </div>
+        }
+        else
+        {
+            <div class="row g-3">
+                @foreach (var recommendation in Model.ActiveRecommendations)
+                {
+                    var req = recommendation.Request;
+                    var rec = recommendation.TopDonor;
+                    var urgencyBadgeClass = req.UrgencyLevel switch
+                    {
+                        BloodDonationApp.Models.UrgencyLevel.Critical => "bg-danger",
+                        BloodDonationApp.Models.UrgencyLevel.Urgent => "bg-warning text-dark",
+                        _ => "bg-success"
+                    };
+
+                    <div class="col-12 col-md-4">
+                        <div class="card border-0 shadow-sm h-100 p-3" style="background-color: rgba(255,255,255,0.03);">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <span class="badge @urgencyBadgeClass text-uppercase px-2 py-1 mb-1" style="font-size: 0.65rem;">@req.UrgencyLevel</span>
+                                    <h5 class="mb-1 text-danger font-serif" style="font-size: 0.95rem;">Req for: @req.PatientName</h5>
+                                </div>
+                                <span class="badge bg-danger fs-6">@req.BloodType</span>
+                            </div>
+                            <div class="small text-muted mb-3 border-bottom pb-2">
+                                <i class="bi bi-hospital"></i> @req.Hospital, @req.City
+                            </div>
+
+                            @if (rec != null)
+                            {
+                                var donor = rec.Donor;
+                                var donorBadge = BloodDonationApp.Helpers.DonorBadgeHelper.GetBadge(donor.TotalDonations);
+                                
+                                <div class="p-2 rounded mb-3 border" style="background-color: var(--primary-light); border-color: var(--primary-border) !important;">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="small fw-bold text-uppercase text-muted" style="font-size: 0.6rem;">Top Suggested Donor</span>
+                                        <span class="badge bg-success shadow-inner" style="font-size: 0.7rem;">@rec.Score% Match</span>
+                                    </div>
+                                    <div class="fw-bold text-dark" style="font-size: 0.85rem;">@donor.Name</div>
+                                    <div class="text-muted font-monospace" style="font-size: 0.75rem;">
+                                        Type: <strong class="text-danger">@donor.BloodType</strong> | Dist: @rec.EstimatedDistance.ToString("F1") km
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex gap-1 mt-auto">
+                                    <form asp-controller="Admin" asp-action="AssignDonor" method="post" class="flex-grow-1">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="requestId" value="@req.Id" />
+                                        <input type="hidden" name="donorId" value="@donor.Id" />
+                                        <button type="submit" class="btn btn-sm btn-danger w-100 text-uppercase fw-bold shadow-sm" style="font-size: 0.75rem; padding: 6px 0;">Assign</button>
+                                    </form>
+                                    <a asp-controller="Admin" asp-action="MatchDonors" asp-route-requestId="@req.Id" class="btn btn-sm btn-outline-dark text-uppercase fw-bold" style="font-size: 0.75rem; padding: 6px 8px;">View All</a>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="alert alert-warning py-2 px-3 small border-0 mb-3 mt-2 text-center">
+                                    <i class="bi bi-exclamation-triangle"></i> No eligible donors
+                                </div>
+                                <div class="mt-auto">
+                                    <a asp-controller="Admin" asp-action="MatchDonors" asp-route-requestId="@req.Id" class="btn btn-sm btn-outline-dark w-100 text-uppercase fw-bold" style="font-size: 0.75rem; padding: 6px 0;">Find Matching Donors</a>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <!-- Blood Requests by Status (Doughnut Chart) -->
+        <div class="col-lg-4 col-md-12 mb-4">
+            <div class="card border-0 shadow-sm p-4 h-100">
+                <h5 class="mb-3 text-danger border-bottom pb-2 text-center font-serif">Requests by Status</h5>
+                <div style="height: 250px; position: relative;">
+                    <canvas id="requestsStatusChart"></canvas>
+                </div>
+                <div class="text-center text-muted small mt-3">
+                    Last updated: @DateTime.Now.ToString("MMMM dd, yyyy HH:mm:ss")
+                </div>
+            </div>
+        </div>
+
+        <!-- Donors by Blood Type (Bar Chart) -->
+        <div class="col-lg-4 col-md-12 mb-4">
+            <div class="card border-0 shadow-sm p-4 h-100">
+                <h5 class="mb-3 text-danger border-bottom pb-2 text-center font-serif">Donors by Blood Type</h5>
+                <div style="height: 250px; position: relative;">
+                    <canvas id="donorsBloodTypeChart"></canvas>
+                </div>
+                <div class="text-center text-muted small mt-3">
+                    Last updated: @DateTime.Now.ToString("MMMM dd, yyyy HH:mm:ss")
+                </div>
+            </div>
+        </div>
+
+        <!-- Registrations Over Time (Line Chart) -->
+        <div class="col-lg-4 col-md-12 mb-4">
+            <div class="card border-0 shadow-sm p-4 h-100">
+                <h5 class="mb-3 text-danger border-bottom pb-2 text-center font-serif">Registrations (Last 6 Months)</h5>
+                <div style="height: 250px; position: relative;">
+                    <canvas id="registrationsChart"></canvas>
+                </div>
+                <div class="text-center text-muted small mt-3">
+                    Last updated: @DateTime.Now.ToString("MMMM dd, yyyy HH:mm:ss")
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <!-- Recent Donors -->
+        <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow-sm p-4 h-100">
+                <h3 class="h4 mb-4 text-danger border-bottom pb-2 font-serif admin-section-heading">Recent Registered Donors</h3>
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm align-middle">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Blood Type</th>
+                                <th>City</th>
+                                <th>Availability</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var donor in Model.Donors) {
+                                <tr>
+                                    <td><strong>@donor.Name</strong></td>
+                                    <td><span class="badge bg-danger fs-7">@donor.BloodType</span></td>
+                                    <td>@donor.City</td>
+                                    <td>
+                                        <span class="badge @(donor.IsAvailable ? "bg-success" : "bg-warning text-dark")">
+                                            @(donor.IsAvailable ? "Available" : "Not Available")
+                                        </span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-4">
+                    <a asp-action="ManageDonors" class="btn btn-secondary btn-sm w-100 text-uppercase">Manage Donors</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Blood Requests -->
+        <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow-sm p-4 h-100">
+                <h3 class="h4 mb-4 text-danger border-bottom pb-2 font-serif admin-section-heading">Recent Blood Requests</h3>
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm align-middle">
+                        <thead>
+                            <tr>
+                                <th>Patient</th>
+                                <th>Blood Type</th>
+                                <th>Hospital</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var request in Model.Requests) {
+                                <tr>
+                                    <td><strong>@(request.IsAnonymous ? "Anonymous Patient" : request.PatientName)</strong></td>
+                                    <td><span class="badge bg-outline-dark">@request.BloodType</span></td>
+                                    <td>@request.Hospital</td>
+                                    <td>
+                                        <span class="badge @(request.Status == "Emergency" ? "bg-danger" : request.Status == "Approved" || request.Status == "Fulfilled" ? "bg-success" : "bg-warning text-dark")">
+                                            @request.Status
+                                        </span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-4">
+                    <a asp-action="BloodRequests" class="btn btn-secondary btn-sm w-100 text-uppercase">View All Requests</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Inventory Update -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm p-4 mb-4">
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-4">
+                    <h3 class="h4 mb-0 fw-bold font-serif text-danger admin-section-heading">Quick Stock Management</h3>
+                    <a asp-controller="Admin" asp-action="Inventory" class="btn btn-sm btn-outline-dark text-uppercase fw-bold">View Details</a>
+                </div>
+                <div class="row g-3">
+                    @if (ViewBag.BloodInventory != null)
+                    {
+                        @foreach (var item in (List<BloodDonationApp.Models.BloodInventory>)ViewBag.BloodInventory)
+                        {
+                            var statusLabel = "Good";
+                            var badgeClass = "bg-success text-white";
+                            var textClass = "text-success";
+                            if (item.UnitsAvailable < 5)
+                            {
+                                statusLabel = "Critical";
+                                badgeClass = "bg-danger text-white";
+                                textClass = "text-danger";
+                            }
+                            else if (item.UnitsAvailable <= 15)
+                            {
+                                statusLabel = "Low";
+                                badgeClass = "bg-warning text-dark";
+                                textClass = "text-warning";
+                            }
+
+                            <div class="col-6 col-lg-3">
+                                <div class="card p-3 border-0 rounded shadow-sm text-center h-100" style="background-color: rgba(255,255,255,0.02);">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <span class="badge bg-danger px-2 py-1 fs-6">@item.BloodType</span>
+                                        <span class="badge @badgeClass font-monospace px-2 py-1">@statusLabel</span>
+                                    </div>
+                                    <div class="mb-3">
+                                        <span class="fs-2 fw-bold font-monospace @textClass">@item.UnitsAvailable</span>
+                                        <span class="text-muted small">units</span>
+                                    </div>
+                                    <form asp-controller="Admin" asp-action="UpdateInventory" method="post" class="d-flex justify-content-center align-items-center mt-auto pt-2 border-top">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@item.Id" />
+                                        <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                                        <input type="number" name="units" value="@item.UnitsAvailable" min="0" class="form-control form-control-sm text-center me-2" style="width: 75px;" required />
+                                        <button type="submit" class="btn btn-sm btn-primary px-3 text-uppercase fw-bold">Set</button>
+                                    </form>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        $(document).ready(function () {
+            // 1. Blood Requests by Status - Doughnut Chart
+            const pendingCount = @(ViewBag.PendingCount ?? 0);
+            const approvedCount = @(ViewBag.ApprovedCount ?? 0);
+            const emergencyCount = @(ViewBag.EmergencyCount ?? 0);
+            const rejectedCount = @(ViewBag.RejectedCount ?? 0);
+
+            const ctxStatus = document.getElementById('requestsStatusChart').getContext('2d');
+            new Chart(ctxStatus, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Pending', 'Approved', 'Emergency', 'Rejected'],
+                    datasets: [{
+                        data: [pendingCount, approvedCount, emergencyCount, rejectedCount],
+                        backgroundColor: [
+                            '#F1C40F', // Gold/Warning
+                            '#2ECC71', // Green/Success
+                            '#E74C3C', // Red/Danger
+                            '#95A5A6'  // Gray/Muted
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim() || '#4A4A6A',
+                                font: {
+                                    family: 'Inter, sans-serif'
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 2. Donors by Blood Type - Bar Chart
+            const bloodTypeLabels = @Html.Raw(Json.Serialize(((Dictionary<string, int>)ViewBag.BloodTypeStats).Keys));
+            const bloodTypeData = @Html.Raw(Json.Serialize(((Dictionary<string, int>)ViewBag.BloodTypeStats).Values));
+
+            const ctxBlood = document.getElementById('donorsBloodTypeChart').getContext('2d');
+            new Chart(ctxBlood, {
+                type: 'bar',
+                data: {
+                    labels: bloodTypeLabels,
+                    datasets: [{
+                        label: 'Donors Count',
+                        data: bloodTypeData,
+                        backgroundColor: '#C0392B', // Deep Red
+                        borderWidth: 0,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0,0,0,0.05)'
+                            },
+                            ticks: {
+                                stepSize: 1,
+                                color: getComputedStyle(document.documentElement).getPropertyValue('--text-muted').trim() || '#9CA3AF',
+                                font: {
+                                    family: 'Inter, sans-serif'
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: getComputedStyle(document.documentElement).getPropertyValue('--text-muted').trim() || '#9CA3AF',
+                                font: {
+                                    family: 'Inter, sans-serif'
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 3. Registrations Over Time - Line Chart
+            const registrationLabels = @Html.Raw(Json.Serialize(((Dictionary<string, int>)ViewBag.RegistrationStats).Keys));
+            const registrationData = @Html.Raw(Json.Serialize(((Dictionary<string, int>)ViewBag.RegistrationStats).Values));
+
+            const ctxReg = document.getElementById('registrationsChart').getContext('2d');
+            new Chart(ctxReg, {
+                type: 'line',
+                data: {
+                    labels: registrationLabels,
+                    datasets: [{
+                        label: 'New Registrations',
+                        data: registrationData,
+                        borderColor: '#D4AC0D', // Gold
+                        backgroundColor: 'rgba(212, 172, 13, 0.05)',
+                        fill: true,
+                        tension: 0.3,
+                        borderWidth: 2,
+                        pointBackgroundColor: '#D4AC0D',
+                        pointBorderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0,0,0,0.05)'
+                            },
+                            ticks: {
+                                stepSize: 1,
+                                color: getComputedStyle(document.documentElement).getPropertyValue('--text-muted').trim() || '#9CA3AF',
+                                font: {
+                                    family: 'Inter, sans-serif'
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: getComputedStyle(document.documentElement).getPropertyValue('--text-muted').trim() || '#9CA3AF',
+                                font: {
+                                    family: 'Inter, sans-serif'
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+}

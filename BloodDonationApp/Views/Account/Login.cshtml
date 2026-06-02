@@ -1,0 +1,46 @@
+@{
+    ViewData["Title"] = "Login - Donora";
+}
+
+<div class="container mt-5 animate-fade-in">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card border-0 shadow-lg">
+                <div class="card-header text-center py-4 bg-transparent border-bottom">
+                    <h2 class="mb-0 text-danger font-serif" style="letter-spacing: 2px;">DONORA</h2>
+                    <small class="text-uppercase text-muted" style="letter-spacing: 1px;">Blood Donation Platform</small>
+                </div>
+                <div class="card-body p-4">
+                    <h4 class="text-center mb-4 font-serif text-secondary" style="font-style: italic;">Sign In to Your Dashboard</h4>
+                    
+                    <form asp-action="Login" method="post">
+                        @Html.AntiForgeryToken()
+                        
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="form-group mb-4">
+                            <label class="form-label text-uppercase small fw-bold text-danger">Email Address</label>
+                            <input name="email" class="form-control" type="email" placeholder="e.g. john@example.com" required />
+                        </div>
+                        
+                        <div class="form-group mb-4">
+                            <label class="form-label text-uppercase small fw-bold text-danger">Password</label>
+                            <input name="password" class="form-control" type="password" placeholder="••••••••" required />
+                        </div>
+                        
+                        <div class="form-group mt-4">
+                            <button type="submit" class="btn btn-primary w-100 py-3 text-uppercase">Enter Platform</button>
+                        </div>
+                    </form>
+                    
+                    <div class="mt-4 text-center">
+                        <hr class="my-4" style="border-top: 1px solid rgba(192,57,43,0.15);" />
+                        <h6 class="text-uppercase small fw-bold mb-2 text-warning">Demo Credentials</h6>
+                        <p class="mb-1 text-muted small"><strong>Admin:</strong> admin@blood.org / admin123</p>
+                        <p class="mb-0 text-muted small"><strong>User (Donor):</strong> john@example.com (or any registered email)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

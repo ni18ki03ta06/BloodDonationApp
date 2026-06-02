@@ -1,0 +1,135 @@
+@model BloodDonationApp.Models.BloodRequest
+@{
+    Layout = "_UserLayout";
+    ViewData["Title"] = "Request Blood";
+}
+
+<div class="animate-fade-in">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <h1 class="h2 mb-0">Request Blood</h1>
+        <a asp-controller="Donor" asp-action="Dashboard" class="btn btn-secondary btn-sm">&larr; Back to Dashboard</a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card border-0 shadow-sm p-4 p-md-5">
+                <h3 class="h4 mb-3 text-danger font-serif">Submit a Blood Request</h3>
+                <p class="text-muted small mb-4">
+                    Fill in the details below. Once submitted, your request will be flagged as <strong>Pending</strong> and reviewed by the platform administrators.
+                </p>
+                
+                <form asp-action="Create" method="post">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <!-- Requester Details Section -->
+                    <div class="row">
+                        <div class="col-md-6 form-group mb-3">
+                            <label asp-for="RequesterName" class="form-label text-uppercase small fw-bold text-danger">Requester Name</label>
+                            <input asp-for="RequesterName" class="form-control" required placeholder="e.g. Jane Doe" />
+                            <span asp-validation-for="RequesterName" class="text-danger small"></span>
+                        </div>
+                        
+                        <div class="col-md-6 form-group mb-3">
+                            <label asp-for="RequesterEmail" class="form-label text-uppercase small fw-bold text-danger">Requester Email (Optional)</label>
+                            <input asp-for="RequesterEmail" class="form-control" placeholder="e.g. jane.doe@example.com" />
+                            <span asp-validation-for="RequesterEmail" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <!-- Urgency and Diagnosis -->
+                    <div class="row">
+                        <div class="col-md-6 form-group mb-3">
+                            <label asp-for="UrgencyLevel" class="form-label text-uppercase small fw-bold text-danger">Urgency Level</label>
+                            <select asp-for="UrgencyLevel" class="form-select" required>
+                                <option value="Normal" style="color: green; font-weight: bold;">Normal</option>
+                                <option value="Urgent" style="color: orange; font-weight: bold;">Urgent</option>
+                                <option value="Critical" style="color: red; font-weight: bold;">Critical</option>
+                            </select>
+                            <span asp-validation-for="UrgencyLevel" class="text-danger small"></span>
+                        </div>
+                        
+                        <div class="col-md-6 form-group mb-3">
+                            <label asp-for="Diagnosis" class="form-label text-uppercase small fw-bold text-danger">Diagnosis / Context (Optional)</label>
+                            <input asp-for="Diagnosis" class="form-control" placeholder="e.g. Heart Surgery" />
+                            <span asp-validation-for="Diagnosis" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-check mb-4">
+                        <input asp-for="IsAnonymous" class="form-check-input text-danger" type="checkbox" />
+                        <label asp-for="IsAnonymous" class="form-check-label small fw-bold text-uppercase text-danger" style="letter-spacing: 0.5px;">
+                            Request Anonymously (Hide names publicly)
+                        </label>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 form-group mb-3">
+                            <label asp-for="PatientName" class="form-label text-uppercase small fw-bold text-danger">Patient Name</label>
+                            <input asp-for="PatientName" class="form-control" required placeholder="e.g. Mike Wilson" />
+                            <span asp-validation-for="PatientName" class="text-danger small"></span>
+                        </div>
+                        
+                        <div class="col-md-6 form-group mb-3">
+                            <label asp-for="BloodType" class="form-label text-uppercase small fw-bold text-danger">Blood Type Required</label>
+                            <select asp-for="BloodType" class="form-select" required>
+                                <option value="">-- Select Blood Type --</option>
+                                <option value="A+">A+</option>
+                                <option value="A-">A-</option>
+                                <option value="B+">B+</option>
+                                <option value="B-">B-</option>
+                                <option value="AB+">AB+</option>
+                                <option value="AB-">AB-</option>
+                                <option value="O+">O+</option>
+                                <option value="O-">O-</option>
+                            </select>
+                            <span asp-validation-for="BloodType" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 form-group mb-3">
+                            <label asp-for="Units" class="form-label text-uppercase small fw-bold text-danger">Units Required</label>
+                            <input asp-for="Units" class="form-control" type="number" min="1" required placeholder="e.g. 2" />
+                            <span asp-validation-for="Units" class="text-danger small"></span>
+                        </div>
+                        
+                        <div class="col-md-6 form-group mb-3">
+                            <label asp-for="ContactNumber" class="form-label text-uppercase small fw-bold text-danger">Contact Phone Number</label>
+                            <input asp-for="ContactNumber" class="form-control" required placeholder="e.g. 9998887777" />
+                            <span asp-validation-for="ContactNumber" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 form-group mb-3">
+                            <label asp-for="Hospital" class="form-label text-uppercase small fw-bold text-danger"></label>
+                            <input asp-for="Hospital" class="form-control" required placeholder="e.g. City General Hospital" />
+                            <span asp-validation-for="Hospital" class="text-danger small"></span>
+                        </div>
+                        
+                        <div class="col-md-6 form-group mb-3">
+                            <label asp-for="City" class="form-label text-uppercase small fw-bold text-danger"></label>
+                            <input asp-for="City" class="form-control" required placeholder="e.g. Los Angeles" />
+                            <span asp-validation-for="City" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <label asp-for="RequiredDate" class="form-label text-uppercase small fw-bold text-danger">Required Date</label>
+                        <input asp-for="RequiredDate" class="form-control" type="date" required />
+                        <span asp-validation-for="RequiredDate" class="text-danger small"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary w-100 py-3 text-uppercase">Submit Blood Request</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

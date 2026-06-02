@@ -1,0 +1,106 @@
+@model IEnumerable<BloodDonationApp.Models.Feedback>
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "User Feedback & Helpdesk";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+    <h1 style="font-family: 'Times New Roman', serif;">User Feedback & Helpdesk</h1>
+    <span class="badge bg-secondary py-2 px-3 text-uppercase" style="background-color: #3D3530 !important;">Feedback Queue</span>
+</div>
+
+<div class="card border-0 shadow-sm p-4" style="background-color: #FFFFFF; border: 1px solid #E8DDD5 !important;">
+    <h3 style="font-family: 'Times New Roman', serif;" class="mb-4 text-dark">Awaiting Reply / Reviews</h3>
+    
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-chat-left-heart text-muted fs-1 mb-3 d-block"></i>
+            <p class="text-muted fs-5">No user feedback received yet.</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle" id="feedbackTable">
+                <thead class="table-light" style="background-color: #F5ECD7;">
+                    <tr>
+                        <th style="font-family: 'Times New Roman', serif;">User / Email</th>
+                        <th style="font-family: 'Times New Roman', serif;">Subject & Message</th>
+                        <th style="font-family: 'Times New Roman', serif; text-align: center;">Rating</th>
+                        <th style="font-family: 'Times New Roman', serif;">Date Submitted</th>
+                        <th style="font-family: 'Times New Roman', serif; text-align: center;">Status</th>
+                        <th style="font-family: 'Times New Roman', serif; text-align: center;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr class="@(item.IsRead ? "" : "table-warning fw-semibold")" style="@(item.IsRead ? "" : "background-color: rgba(245, 236, 215, 0.25);")">
+                            <td>
+                                <div>
+                                    <strong>@item.Name</strong>
+                                    @if (item.DonorId.HasValue)
+                                    {
+                                        <span class="badge bg-gold ms-1 text-dark" style="background-color: #B5894A !important; font-size: 0.75rem;">Registered</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-light text-muted border ms-1" style="font-size: 0.75rem;">Guest</span>
+                                    }
+                                </div>
+                                <small class="text-muted">@item.Email</small>
+                            </td>
+                            <td>
+                                <div><strong>@item.Subject</strong></div>
+                                <span class="text-muted small">@item.Message</span>
+                            </td>
+                            <td class="text-nowrap" style="text-align: center;">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    if (i <= item.Rating)
+                                    {
+                                        <i class="bi bi-star-fill text-warning"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="bi bi-star text-muted"></i>
+                                    }
+                                }
+                            </td>
+                            <td>
+                                <div>@item.SubmittedAt.ToString("dd MMM yyyy")</div>
+                                <small class="text-muted">@item.SubmittedAt.ToString("hh:mm tt")</small>
+                            </td>
+                            <td style="text-align: center;">
+                                @if (item.IsRead)
+                                {
+                                    <span class="badge bg-success py-1 px-2 text-uppercase" style="font-size: 0.75rem;">Read</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger py-1 px-2 text-uppercase" style="font-size: 0.75rem;">Unread</span>
+                                }
+                            </td>
+                            <td style="text-align: center;">
+                                @if (!item.IsRead)
+                                {
+                                    <form asp-controller="Admin" asp-action="MarkFeedbackRead" asp-route-id="@item.Id" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-outline-dark text-uppercase py-1 px-2" style="font-size: 0.75rem; font-weight: bold; border-color: #3D3530; color: #3D3530;" id="btnMarkRead_@item.Id">
+                                            Mark Read
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">-</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

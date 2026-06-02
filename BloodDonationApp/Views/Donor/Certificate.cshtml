@@ -1,0 +1,241 @@
+@model BloodDonationApp.Models.DonationRecord
+@{
+    Layout = "_UserLayout";
+    ViewData["Title"] = "Donation Certificate - Donora";
+    var certNum = ViewBag.CertificateNumber as string;
+}
+
+<div class="container mt-4 mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4 no-print pb-2 border-bottom">
+        <a asp-action="History" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Back to History
+        </a>
+        <button onclick="window.print();" class="btn btn-primary">
+            <i class="bi bi-printer me-1"></i> Print / Download Certificate
+        </button>
+    </div>
+
+    <div class="d-flex justify-content-center">
+        <!-- Certificate Card -->
+        <div id="certificate-container" class="certificate-card position-relative p-5 shadow-lg bg-white text-center border-outer">
+            <div class="border-inner p-4 position-relative">
+                
+                <!-- Watermark -->
+                <div class="certificate-watermark">
+                    <i class="bi bi-heart-pulse-fill"></i>
+                </div>
+
+                <!-- Header -->
+                <div class="cert-header mb-4">
+                    <h2 class="text-serif text-burgundy tracking-wide mb-1">D O N O R A</h2>
+                    <h5 class="text-uppercase text-gold tracking-widest font-semibold">Certificate of Appreciation</h5>
+                    <div class="divider-gold mx-auto"></div>
+                </div>
+
+                <!-- Body -->
+                <div class="cert-body my-4">
+                    <p class="cert-text text-muted mb-2">This certificate is proudly presented to</p>
+                    <h1 class="cert-name text-serif text-burgundy my-3">@Model.Donor.Name</h1>
+                    
+                    <p class="cert-lead px-4 mb-4">
+                        in recognition of their noble contribution of blood donation. By selflessly sharing the gift of life, 
+                        they have made a vital impact on healthcare and helped save lives.
+                    </p>
+
+                    <div class="row justify-content-center my-4">
+                        <div class="col-md-8">
+                            <table class="table table-borderless cert-table text-start mx-auto w-100">
+                                <tr>
+                                    <td class="fw-bold text-burgundy w-40">Blood Type:</td>
+                                    <td><span class="badge bg-danger fs-6 px-3">@Model.BloodType</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold text-burgundy">Donation Date:</td>
+                                    <td class="text-secondary">@Model.DonationDate.ToString("MMMM dd, yyyy")</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold text-burgundy">Donated at:</td>
+                                    <td class="text-secondary">@Model.Hospital, @Model.City</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold text-burgundy">Volume:</td>
+                                    <td class="text-secondary">@Model.Units Unit(s)</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Signatures / Footer -->
+                <div class="cert-footer row mt-5 pt-4">
+                    <div class="col-6 text-center">
+                        <div class="signature-line mx-auto mb-2"></div>
+                        <span class="text-uppercase small tracking-wide text-muted">Donora Registry</span>
+                    </div>
+                    <div class="col-6 text-center">
+                        <div class="signature-line mx-auto mb-2"></div>
+                        <span class="text-uppercase small tracking-wide text-muted">Medical Authority</span>
+                    </div>
+                </div>
+
+                <!-- Certificate Meta -->
+                <div class="cert-meta mt-4 text-start d-flex justify-content-between align-items-end text-muted small">
+                    <div>
+                        <strong>Certificate No:</strong> <span class="font-monospace">@certNum</span>
+                    </div>
+                    <div>
+                        <strong>Generated:</strong> @DateTime.Now.ToString("yyyy-MM-dd")
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Styling for the screen display */
+    .certificate-card {
+        width: 100%;
+        max-width: 850px;
+        background-color: #FCFBF7 !important;
+        color: #333;
+        font-family: 'Georgia', 'Times New Roman', serif;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+
+    .border-outer {
+        border: 15px solid #7D2B2B; /* Burgundy */
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+
+    .border-inner {
+        border: 2px solid #B5894A; /* Gold */
+        min-height: 520px;
+        background-color: transparent;
+    }
+
+    .text-serif {
+        font-family: 'Times New Roman', serif;
+    }
+
+    .text-burgundy {
+        color: #7D2B2B;
+    }
+
+    .text-gold {
+        color: #B5894A;
+    }
+
+    .tracking-wide {
+        letter-spacing: 3px;
+    }
+
+    .tracking-widest {
+        letter-spacing: 5px;
+    }
+
+    .divider-gold {
+        height: 3px;
+        width: 120px;
+        background-color: #B5894A;
+        margin-top: 15px;
+        margin-bottom: 15px;
+    }
+
+    .cert-name {
+        font-size: 2.8rem;
+        font-style: italic;
+        font-weight: 500;
+        text-shadow: 1px 1px 1px rgba(0,0,0,0.05);
+    }
+
+    .cert-lead {
+        font-size: 1.05rem;
+        line-height: 1.6;
+        color: #555;
+        font-style: italic;
+    }
+
+    .cert-table {
+        background-color: transparent;
+        font-size: 1.05rem;
+    }
+
+    .cert-table td {
+        padding: 6px 12px;
+    }
+
+    .signature-line {
+        width: 160px;
+        height: 1px;
+        background-color: #8C7B75;
+    }
+
+    .certificate-watermark {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 15rem;
+        color: rgba(125, 43, 43, 0.035);
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .border-inner * {
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Print Specific Styling */
+    @@media print {
+        /* Hide everything except certificate-container */
+        body * {
+            visibility: hidden;
+            background: none !important;
+        }
+
+        #certificate-container, #certificate-container * {
+            visibility: visible;
+        }
+
+        #certificate-container {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%) scale(1.05);
+            width: 100%;
+            max-width: 90%;
+            margin: 0;
+            padding: 2.5rem !important;
+            border: 15px solid #7D2B2B !important;
+            background-color: #FCFBF7 !important;
+            box-shadow: none !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .no-print {
+            display: none !important;
+        }
+        
+        .border-inner {
+            border: 2px solid #B5894A !important;
+        }
+        
+        .badge.bg-danger {
+            background-color: #dc3545 !important;
+            color: white !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .certificate-watermark {
+            color: rgba(125, 43, 43, 0.035) !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+    }
+</style>

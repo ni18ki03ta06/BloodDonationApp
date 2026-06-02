@@ -1,0 +1,420 @@
+@model BloodDonationApp.Models.Donor
+@{
+    Layout = "_UserLayout";
+    ViewData["Title"] = "Achievements & Rewards";
+    var allBadges = ViewBag.AllBadges as List<BloodDonationApp.Models.Badge> ?? new List<BloodDonationApp.Models.Badge>();
+    var allRewards = ViewBag.AllRewards as List<BloodDonationApp.Models.Reward> ?? new List<BloodDonationApp.Models.Reward>();
+    var leaderboard = ViewBag.Leaderboard as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
+
+    // Calculate progression details
+    int nextLevelPoints = 100;
+    int prevLevelPoints = 0;
+    if (Model.Level == 2) { prevLevelPoints = 100; nextLevelPoints = 300; }
+    else if (Model.Level == 3) { prevLevelPoints = 300; nextLevelPoints = 600; }
+    else if (Model.Level == 4) { prevLevelPoints = 600; nextLevelPoints = 1000; }
+    else if (Model.Level == 5) { prevLevelPoints = 1000; nextLevelPoints = 2000; } // Max level representation
+
+    double progressPercentage = 0;
+    if (Model.Level == 5)
+    {
+        progressPercentage = 100.0;
+    }
+    else
+    {
+        double range = nextLevelPoints - prevLevelPoints;
+        double currentOffset = Model.LifetimePoints - prevLevelPoints;
+        progressPercentage = (currentOffset / range) * 100.0;
+        if (progressPercentage < 0) progressPercentage = 0;
+        if (progressPercentage > 100) progressPercentage = 100;
+    }
+}
+
+<div class="container py-5">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4" role="alert" style="border-left: 5px solid #28a745; border-radius: 8px;">
+            <i class="bi bi-check-circle-fill me-2 text-success"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm mb-4" role="alert" style="border-left: 5px solid #dc3545; border-radius: 8px;">
+            <i class="bi bi-exclamation-triangle-fill me-2 text-danger"></i> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Header Section -->
+    <div class="text-center mb-5">
+        <h2 class="display-6 fw-bold" style="font-family: 'Times New Roman', Georgia, serif; color: #3D1212;">
+            Achievements & Rewards
+        </h2>
+        <p class="text-muted">Save lives, earn reward points, and unlock legendary recognition badges!</p>
+    </div>
+
+    <!-- Row 1: Level Progression & Balance -->
+    <div class="row g-4 mb-5">
+        <!-- Level Progress Card -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg h-100 progress-card overflow-hidden" style="border-radius: 16px; background: linear-gradient(135deg, #1C1A17 0%, #3D1212 100%); color: #fff;">
+                <div class="card-body p-4 p-md-5 d-flex flex-column justify-content-between position-relative">
+                    <div class="floating-accent"></div>
+                    <div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="badge bg-gold text-dark text-uppercase font-monospace tracking-wide px-3 py-2 fw-bold" style="font-size: 0.75rem;">Level @Model.Level</span>
+                            <span class="text-gold font-monospace small"><i class="bi bi-star-fill"></i> @Model.LifetimePoints XP Lifetime</span>
+                        </div>
+                        <h3 class="display-6 fw-bold text-gold" style="font-family: 'Times New Roman', Georgia, serif;">@Model.LevelName</h3>
+                        <p class="text-muted-light small mb-4">
+                            @if (Model.Level == 5)
+                            {
+                                <span>You have reached the pinnacle rank of donation heroism! Thank you for your incredible support.</span>
+                            }
+                            else
+                            {
+                                <span>Earn @(nextLevelPoints - Model.LifetimePoints) more points to unlock the next rank: <strong>Level @(Model.Level + 1)</strong></span>
+                            }
+                        </p>
+                    </div>
+
+                    <div>
+                        <div class="d-flex justify-content-between mb-2 small font-monospace">
+                            <span>Level @Model.Level Progress</span>
+                            <span>@Model.LifetimePoints / @nextLevelPoints XP</span>
+                        </div>
+                        <div class="progress bg-dark-dimmed" style="height: 14px; border-radius: 10px; overflow: hidden; padding: 2px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated bg-gold-gradient" role="progressbar" 
+                                 style="width: @progressPercentage.ToString("F1")%; border-radius: 8px; transition: width 1.5s cubic-bezier(0.1, 0.8, 0.3, 1);" 
+                                 aria-valuenow="@Model.LifetimePoints" aria-valuemin="@prevLevelPoints" aria-valuemax="@nextLevelPoints"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Balance Card -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-lg h-100 balance-card" style="border-radius: 16px; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.15);">
+                <div class="card-body p-4 p-md-5 text-center d-flex flex-column justify-content-center align-items-center">
+                    <div class="points-circle mb-3 shadow-gold">
+                        <i class="bi bi-gem text-gold"></i>
+                    </div>
+                    <h5 class="text-muted text-uppercase tracking-wider font-monospace mb-1" style="font-size: 0.75rem;">Spendable Points</h5>
+                    <h2 class="display-4 fw-bold text-dark mb-2 font-monospace" style="color: #3D1212 !important;">@Model.RewardPoints</h2>
+                    <p class="text-muted small mb-0">Redeem these points for exclusive milestone gifts in our store below.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Row 2: Badges Gallery -->
+    <div class="mb-5">
+        <h4 class="fw-bold mb-4 font-monospace text-uppercase" style="font-size: 1.1rem; color: #3D1212; letter-spacing: 1px;">
+            <i class="bi bi-trophy-fill text-gold me-2"></i> Badge Gallery
+        </h4>
+        <div class="row g-4">
+            @foreach (var badge in allBadges)
+            {
+                var unlocked = Model.DonorBadges.FirstOrDefault(db => db.BadgeId == badge.Id);
+                var isUnlocked = unlocked != null;
+                
+                <div class="col-md-6 col-lg-4">
+                    <div class="card border-0 shadow-sm h-100 badge-card @(isUnlocked ? "badge-unlocked" : "badge-locked")" 
+                         style="border-radius: 12px; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); background: #ffffff; border: 1.5px solid @(isUnlocked ? badge.ColorHex : "#eaeaea");">
+                        <div class="card-body p-4 d-flex align-items-center">
+                            <div class="badge-icon-wrap me-4" style="background-color: @(isUnlocked ? badge.ColorHex + "20" : "#eaeaea"); color: @(isUnlocked ? badge.ColorHex : "#a0a0a0");">
+                                @if (isUnlocked)
+                                {
+                                    <i class="bi @badge.Icon fs-3"></i>
+                                }
+                                else
+                                {
+                                    <i class="bi bi-lock-fill fs-3"></i>
+                                }
+                            </div>
+                            <div>
+                                <h5 class="fw-bold mb-1" style="font-size: 1rem; color: #1c1c1c;">@badge.Name</h5>
+                                <p class="text-muted small mb-2" style="font-size: 0.8rem; line-height: 1.25;">@badge.Description</p>
+                                @if (isUnlocked)
+                                {
+                                    <span class="badge-date font-monospace text-uppercase" style="color: @badge.ColorHex; font-size: 0.65rem;">
+                                        <i class="bi bi-check-circle-fill me-1"></i> Unlocked @unlocked!.UnlockedAt.ToString("dd-MMM-yyyy")
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted font-monospace text-uppercase" style="font-size: 0.65rem;">
+                                        Criteria: @badge.Criteria.Replace("donations", "donations").Replace("level", "level")
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Row 3: Rewards Store & Leaderboard -->
+    <div class="row g-5">
+        <!-- Rewards Store -->
+        <div class="col-xl-7">
+            <h4 class="fw-bold mb-4 font-monospace text-uppercase" style="font-size: 1.1rem; color: #3D1212; letter-spacing: 1px;">
+                <i class="bi bi-cart-fill text-gold me-2"></i> Milestone Rewards Store
+            </h4>
+            <div class="row g-3">
+                @foreach (var reward in allRewards)
+                {
+                    var canAfford = Model.RewardPoints >= reward.PointsCost;
+                    var hasStock = reward.AvailableQuantity > 0;
+                    
+                    <div class="col-md-6">
+                        <div class="card border-0 shadow-sm h-100 reward-store-card overflow-hidden" 
+                             style="border-radius: 12px; background: #ffffff; border: 1.5px solid #eaeaea; transition: all 0.25s ease;">
+                            <div class="card-body p-4 d-flex flex-column justify-content-between">
+                                <div>
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <div class="reward-icon-wrap" style="background-color: #FDF6EC; color: #B5894A;">
+                                            <i class="bi @reward.Icon fs-4"></i>
+                                        </div>
+                                        <span class="badge bg-gold text-dark font-monospace fw-bold px-2 py-1" style="font-size: 0.7rem;">@reward.PointsCost pts</span>
+                                    </div>
+                                    <h5 class="fw-bold mb-1" style="font-size: 0.95rem; color: #1c1c1c;">@reward.Name</h5>
+                                    <p class="text-muted small mb-3" style="font-size: 0.78rem; line-height: 1.3;">@reward.Description</p>
+                                </div>
+
+                                <div>
+                                    <div class="d-flex justify-content-between align-items-center mb-3 font-monospace" style="font-size: 0.7rem;">
+                                        <span class="text-muted">Available Stock</span>
+                                        <span class="@(reward.AvailableQuantity < 10 ? "text-danger fw-bold" : "text-success")">@reward.AvailableQuantity units</span>
+                                    </div>
+                                    
+                                    <form asp-action="RedeemReward" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="rewardId" value="@reward.Id" />
+                                        @if (canAfford && hasStock)
+                                        {
+                                            <button type="submit" class="btn btn-gold btn-sm w-100 text-uppercase fw-bold py-2 font-monospace" style="font-size: 0.75rem;">
+                                                <i class="bi bi-gift-fill me-1"></i> Redeem Gift
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button type="button" class="btn btn-outline-secondary btn-sm w-100 text-uppercase fw-bold py-2 font-monospace disabled" style="font-size: 0.75rem; opacity: 0.65;">
+                                                @if (!hasStock)
+                                                {
+                                                    <span>Out of Stock</span>
+                                                }
+                                                else
+                                                {
+                                                    <span>Need @(reward.PointsCost - Model.RewardPoints) more pts</span>
+                                                }
+                                            </button>
+                                        }
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Leaderboard -->
+        <div class="col-xl-5">
+            <h4 class="fw-bold mb-4 font-monospace text-uppercase" style="font-size: 1.1rem; color: #3D1212; letter-spacing: 1px;">
+                <i class="bi bi-people-fill text-gold me-2"></i> Donation Leaderboard
+            </h4>
+            <div class="card border-0 shadow-sm" style="border-radius: 12px; background: #ffffff; border: 1.5px solid #eaeaea; overflow: hidden;">
+                <div class="card-header bg-dark text-white p-3 font-monospace text-uppercase" style="font-size: 0.75rem; letter-spacing: 1px;">
+                    Top Lifesavers (XP Ranking)
+                </div>
+                <div class="list-group list-group-flush">
+                    @{
+                        int rank = 1;
+                        foreach (var user in leaderboard)
+                        {
+                            var isCurrentUser = user.Id == Model.Id;
+                            <div class="list-group-item p-3 d-flex align-items-center justify-content-between @(isCurrentUser ? "bg-light-gold" : "")" style="transition: all 0.2s ease;">
+                                <div class="d-flex align-items-center">
+                                    <!-- Rank Medal -->
+                                    <div class="rank-badge me-3 @(rank == 1 ? "rank-1" : rank == 2 ? "rank-2" : rank == 3 ? "rank-3" : "rank-other") font-monospace">
+                                        @if (rank == 1)
+                                        {
+                                            <i class="bi bi-trophy-fill text-gold"></i>
+                                        }
+                                        else if (rank == 2)
+                                        {
+                                            <i class="bi bi-award-fill text-secondary"></i>
+                                        }
+                                        else if (rank == 3)
+                                        {
+                                            <i class="bi bi-award-fill text-bronze"></i>
+                                        }
+                                        else
+                                        {
+                                            <span>@rank</span>
+                                        }
+                                    </div>
+                                    <div>
+                                        <div class="d-flex align-items-center">
+                                            <strong class="text-dark small me-2">@user.Name</strong>
+                                            <span class="badge bg-danger text-white font-monospace text-uppercase" style="font-size: 0.55rem; padding: 2px 4px;">@user.BloodType</span>
+                                            @if (isCurrentUser)
+                                            {
+                                                <span class="badge bg-gold text-dark ms-2 font-monospace fw-bold" style="font-size: 0.55rem; padding: 2px 4px;">YOU</span>
+                                            }
+                                        </div>
+                                        <span class="text-muted font-monospace" style="font-size: 0.7rem;">Lvl @user.Level (@user.LevelName) &bull; @user.TotalDonations donations</span>
+                                    </div>
+                                </div>
+                                <div class="text-end font-monospace">
+                                    <strong style="color: #3D1212; font-size: 0.85rem;">@user.LifetimePoints XP</strong>
+                                </div>
+                            </div>
+                            rank++;
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Premium Gamification Styles */
+    .bg-gold {
+        background-color: #D4AF37 !important;
+    }
+    .text-gold {
+        color: #D4AF37 !important;
+    }
+    .shadow-gold {
+        box-shadow: 0 4px 15px rgba(212, 175, 55, 0.25);
+    }
+    .text-muted-light {
+        color: rgba(255, 255, 255, 0.65);
+    }
+    .bg-dark-dimmed {
+        background-color: rgba(255, 255, 255, 0.08) !important;
+    }
+    .bg-light-gold {
+        background-color: #FFFDF0 !important;
+        border-left: 4px solid #D4AF37 !important;
+    }
+    .bg-gold-gradient {
+        background: linear-gradient(90deg, #B5894A 0%, #D4AF37 50%, #B5894A 100%) !important;
+    }
+    
+    /* Points Circle Icon */
+    .points-circle {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        background: #1C1A17;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        border: 2px solid #D4AF37;
+    }
+
+    /* Floating Decor Accent for Level Card */
+    .progress-card {
+        position: relative;
+    }
+    .floating-accent {
+        position: absolute;
+        top: -50px;
+        right: -50px;
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(212,175,55,0.15) 0%, rgba(212,175,55,0) 70%);
+        pointer-events: none;
+    }
+
+    /* Badge Icons Wrapper */
+    .badge-icon-wrap {
+        width: 55px;
+        height: 55px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    
+    /* Reward Icon Wrapper */
+    .reward-icon-wrap {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Leaderboard Rank Badges */
+    .rank-badge {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        font-weight: bold;
+        flex-shrink: 0;
+    }
+    .rank-1 {
+        background-color: #FEF9E7;
+        border: 1.5px solid #D4AF37;
+        font-size: 1rem;
+    }
+    .rank-2 {
+        background-color: #F8F9F9;
+        border: 1.5px solid #BDC3C7;
+        font-size: 1rem;
+    }
+    .rank-3 {
+        background-color: #FBEEE6;
+        border: 1.5px solid #CD7F32;
+        font-size: 1rem;
+    }
+    .rank-other {
+        background-color: #f1f1f1;
+        color: #777;
+    }
+    .text-bronze {
+        color: #CD7F32 !important;
+    }
+
+    /* Animations & Interactive Micro-effects */
+    .badge-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.06);
+    }
+    .badge-unlocked:hover {
+        box-shadow: 0 8px 20px rgba(181, 137, 74, 0.12);
+    }
+    .badge-locked {
+        opacity: 0.65;
+    }
+    .badge-locked .badge-icon-wrap {
+        border: 1.5px dashed #ccc;
+    }
+    .reward-store-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 16px rgba(181, 137, 74, 0.08);
+        border-color: #B5894A !important;
+    }
+    .list-group-item:hover {
+        background-color: #fafafa;
+    }
+    
+    .tracking-wide {
+        letter-spacing: 1px;
+    }
+</style>

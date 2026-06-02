@@ -1,0 +1,97 @@
+@model IEnumerable<BloodDonationApp.Models.Appointment>
+@{
+    var tab = ViewData["Tab"] as string;
+}
+
+@if (Model == null || !Model.Any())
+{
+    <div class="text-center py-5">
+        <i class="bi bi-inbox text-muted" style="font-size: 2.5rem;"></i>
+        <h6 class="text-muted fw-bold mt-2">No @tab Appointments</h6>
+        <p class="text-muted small mb-0">No records found matching this scheduling category.</p>
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0" style="font-size: 0.8rem;">
+            <thead class="table-light font-monospace text-uppercase" style="font-size: 0.7rem;">
+                <tr>
+                    <th>Donor</th>
+                    <th>Date / Slot</th>
+                    <th class="text-center">Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var appt in Model)
+                {
+                    var badgeClass = "bg-warning text-dark";
+                    if (appt.Status == "Approved") badgeClass = "bg-info text-white";
+                    else if (appt.Status == "Completed") badgeClass = "bg-success text-white";
+                    else if (appt.Status == "Cancelled") badgeClass = "bg-secondary text-white";
+                    
+                    <tr>
+                        <td>
+                            <div class="fw-bold">@appt.Donor?.Name</div>
+                            <span class="badge bg-danger mt-1">@appt.Donor?.BloodType</span>
+                        </td>
+                        <td>
+                            <div class="font-monospace fw-bold text-secondary">@appt.AppointmentDate.ToString("dd-MMM-yyyy")</div>
+                            <div class="small text-muted font-monospace">@appt.TimeSlot</div>
+                            @if (!string.IsNullOrEmpty(appt.Notes))
+                            {
+                                <small class="d-block text-truncate text-muted mt-1" style="max-width: 160px;" title="@appt.Notes">
+                                    <i class="bi bi-chat-left-dots text-gold me-1"></i> @appt.Notes
+                                </small>
+                            }
+                        </td>
+                        <td class="text-center">
+                            <span class="badge @badgeClass rounded-pill font-monospace" style="font-size: 0.65rem;">@appt.Status</span>
+                        </td>
+                        <td class="text-end">
+                            <div class="d-flex flex-column gap-1 align-items-end">
+                                @if (appt.Status == "Pending")
+                                {
+                                    <form asp-action="ApproveAppointment" asp-route-id="@appt.Id" method="post" class="d-inline m-0">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-success btn-xs py-1 px-2 text-uppercase font-monospace fw-bold" style="font-size: 0.6rem;">
+                                            <i class="bi bi-check-circle me-1"></i> Approve
+                                        </button>
+                                    </form>
+                                    <form asp-action="RejectAppointment" asp-route-id="@appt.Id" method="post" class="d-inline m-0"
+                                          onsubmit="return confirm('Are you sure you want to reject this appointment?');">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-outline-danger btn-xs py-1 px-2 text-uppercase font-monospace fw-bold" style="font-size: 0.6rem;">
+                                            <i class="bi bi-x-circle me-1"></i> Reject
+                                        </button>
+                                    </form>
+                                }
+                                else if (appt.Status == "Approved")
+                                {
+                                    <form asp-action="CompleteAppointment" asp-route-id="@appt.Id" method="post" class="d-inline m-0">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-primary btn-xs py-1 px-2 text-uppercase font-monospace fw-bold" style="font-size: 0.6rem;">
+                                            <i class="bi bi-clipboard2-check me-1"></i> Complete
+                                        </button>
+                                    </form>
+                                    <form asp-action="RejectAppointment" asp-route-id="@appt.Id" method="post" class="d-inline m-0"
+                                          onsubmit="return confirm('Are you sure you want to cancel this approved appointment?');">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-outline-secondary btn-xs py-1 px-2 text-uppercase font-monospace" style="font-size: 0.6rem;">
+                                            <i class="bi bi-x-circle me-1"></i> Cancel
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small font-monospace">-</span>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

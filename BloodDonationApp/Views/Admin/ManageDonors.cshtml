@@ -1,0 +1,63 @@
+@model IEnumerable<BloodDonationApp.Models.Donor>
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Donor Request";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+    <h1 style="font-family: 'Times New Roman', serif;">Manage Registered Donors</h1>
+    <span class="badge bg-secondary py-2 px-3 text-uppercase">Admin CRUD</span>
+</div>
+
+<div class="card border-0 shadow-sm p-4">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Blood Type</th>
+                    <th>Badge</th>
+                    <th>Email Address</th>
+                    <th>Phone Number</th>
+                    <th>City</th>
+                    <th>Last Donation</th>
+                    <th>Availability</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var donor in Model)
+                {
+                    <tr>
+                        <td><strong>@donor.Name</strong></td>
+                        <td><span class="badge bg-danger">@donor.BloodType</span></td>
+                        <td>
+                            @{
+                                var badge = BloodDonationApp.Helpers.DonorBadgeHelper.GetBadge(donor.TotalDonations);
+                            }
+                            <span class="badge @badge.ColorClass">@badge.Name</span>
+                        </td>
+                        <td>@donor.Email</td>
+                        <td>@donor.Phone</td>
+                        <td>@donor.City</td>
+                        <td>@(donor.LastDonationDate?.ToString("yyyy-MM-dd") ?? "Never")</td>
+                        <td>
+                            <span class="badge @(donor.IsAvailable ? "bg-success" : "bg-warning")">
+                                @(donor.IsAvailable ? "Available" : "Not Available")
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            <div class="d-flex justify-content-end gap-1">
+                                <a asp-action="EditDonor" asp-route-id="@donor.Id" class="btn btn-sm btn-outline-primary py-1">Edit</a>
+                                <form asp-action="DeleteDonor" asp-route-id="@donor.Id" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this donor?');">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-outline-danger py-1">Delete</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

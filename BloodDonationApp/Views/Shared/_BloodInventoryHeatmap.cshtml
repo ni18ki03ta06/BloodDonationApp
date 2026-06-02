@@ -1,0 +1,129 @@
+@inject BloodDonationApp.Application.Interfaces.IBloodInventoryService InventoryService
+@{
+    var inventory = await InventoryService.GetAllInventoryAsync();
+    // Order blood types consistently
+    var bloodTypesOrder = new List<string> { "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-" };
+    var inventoryMap = inventory.ToDictionary(i => i.BloodType.Trim().ToUpper(), i => i);
+}
+
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+    <div class="card-header bg-white border-0 pt-4 pb-0 d-flex align-items-center justify-content-between">
+        <div>
+            <h5 class="fw-bold mb-1 text-dark admin-section-heading">
+                <i class="bi bi-droplet-fill text-danger me-2"></i>Live Blood Inventory Stock
+            </h5>
+            <p class="text-muted small mb-0">Real-time status of blood units available across all compatible types</p>
+        </div>
+        <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3 py-2 font-monospace text-uppercase small badge-live-updates">
+            Live Updates Enabled
+        </span>
+    </div>
+    <div class="card-body pt-4">
+        <div class="row row-cols-2 row-cols-sm-4 g-3">
+            @foreach (var bt in bloodTypesOrder)
+            {
+                var units = 0;
+                var reserved = 0;
+                var id = 0;
+                if (inventoryMap.TryGetValue(bt, out var inv))
+                {
+                    units = inv.UnitsAvailable;
+                    reserved = inv.UnitsReserved;
+                    id = inv.Id;
+                }
+
+                // Determine stock category and class
+                // Red (Critical <10), Yellow (Low <30), Green (Sufficient >=30)
+                string bgClass = "";
+                string borderClass = "";
+                string textClass = "";
+                string badgeText = "";
+                string progressColor = "";
+
+                if (units < 10)
+                {
+                    bgClass = "bg-danger bg-opacity-10";
+                    borderClass = "border-danger border-opacity-20";
+                    textClass = "text-danger";
+                    badgeText = "Critical Stock";
+                    progressColor = "bg-danger";
+                }
+                else if (units < 30)
+                {
+                    bgClass = "bg-warning bg-opacity-10";
+                    borderClass = "border-warning border-opacity-20";
+                    textClass = "text-warning-emphasis";
+                    badgeText = "Low Stock";
+                    progressColor = "bg-warning";
+                }
+                else
+                {
+                    bgClass = "bg-success bg-opacity-10";
+                    borderClass = "border-success border-opacity-20";
+                    textClass = "text-success";
+                    badgeText = "Sufficient";
+                    progressColor = "bg-success";
+                }
+
+                <div class="col">
+                    <div id="inventory-card-@id" class="card border rounded-4 h-100 text-center transition-all hover-translate-y @bgClass @borderClass">
+                        <div class="inventory-card-body p-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="fs-4 fw-black text-dark font-monospace">@bt</span>
+                                <span class="badge rounded-pill bg-white text-dark border px-2 py-1 font-monospace small status-badge" style="font-size: 0.75rem;">@badgeText</span>
+                            </div>
+                            <div class="my-3">
+                                <h2 class="display-6 fw-bold mb-0 font-monospace @textClass stock-units">@units</h2>
+                                <span class="text-muted small">Units Available</span>
+                            </div>
+                            
+                            @{
+                                var percent = Math.Min(100, (units * 100) / 50);
+                            }
+                            <div class="progress rounded-pill mb-2" style="height: 6px;">
+                                <div class="progress-bar rounded-pill @progressColor" role="progressbar" style="width: @percent%" aria-valuenow="@units" aria-valuemin="0" aria-valuemax="50"></div>
+                            </div>
+
+                            <div class="units-reserved-container mt-1">
+                                @if (reserved > 0)
+                                {
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill font-monospace small py-1 px-2" style="font-size: 0.7rem;">
+                                        <i class="bi bi-bookmark-fill me-1"></i>@reserved Reserved
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+        <div class="row mt-4 pt-2 border-top">
+            <div class="col-12 d-flex justify-content-center flex-wrap gap-4 small text-muted">
+                <div><span class="badge bg-danger rounded-circle p-1 me-1" style="width: 10px; height: 10px; display: inline-block;"></span> Critical (&lt; 10 units)</div>
+                <div><span class="badge bg-warning rounded-circle p-1 me-1" style="width: 10px; height: 10px; display: inline-block;"></span> Low Stock (&lt; 30 units)</div>
+                <div><span class="badge bg-success rounded-circle p-1 me-1" style="width: 10px; height: 10px; display: inline-block;"></span> Sufficient (&ge; 30 units)</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .transition-all {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .hover-translate-y:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.06);
+    }
+    .fw-black {
+        font-weight: 800;
+    }
+    @@keyframes flash-card {
+        0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); }
+        50% { transform: scale(1.03); box-shadow: 0 0 20px 10px rgba(220, 53, 69, 0.2); }
+        100% { transform: scale(1); box-shadow: none; }
+    }
+    .flash-update-card {
+        animation: flash-card 1.2s ease;
+    }
+</style>

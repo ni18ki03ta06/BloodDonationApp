@@ -1,0 +1,109 @@
+@model IEnumerable<BloodDonationApp.Models.AuditLog>
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "System Audit Log";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+    <h1 style="font-family: 'Times New Roman', serif;">System Audit Log</h1>
+    <span class="text-muted text-uppercase" style="letter-spacing: 1px; font-size: 0.85rem;">Last 100 System Events</span>
+</div>
+
+<div class="card border-0 shadow-sm p-4">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th style="width: 18%;">Date / Time</th>
+                    <th style="width: 20%;">Actor</th>
+                    <th style="width: 15%;">Action</th>
+                    <th style="width: 15%;">Entity</th>
+                    <th style="width: 32%;">Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="5" class="text-center py-4 text-muted">
+                            <i class="bi bi-info-circle me-1"></i> No audit logs found in the system.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var log in Model)
+                    {
+                        <tr>
+                            <td>
+                                <span class="text-secondary" style="font-size: 0.9rem;">
+                                    <i class="bi bi-clock me-1 text-muted"></i>
+                                    @log.Timestamp.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")
+                                </span>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    @if (log.ActorType == "Admin")
+                                    {
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle me-2" style="font-size: 0.75rem; font-weight: 600;">
+                                            <i class="bi bi-shield-lock-fill me-1"></i>Admin
+                                        </span>
+                                    }
+                                    else if (log.ActorType == "Donor")
+                                    {
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle me-2" style="font-size: 0.75rem; font-weight: 600;">
+                                            <i class="bi bi-heart-fill me-1"></i>Donor
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle me-2" style="font-size: 0.75rem; font-weight: 600;">
+                                            @log.ActorType
+                                        </span>
+                                    }
+                                    <span class="fw-semibold text-dark">@log.ActorName</span>
+                                    <small class="text-muted ms-1">(ID: @log.ActorId)</small>
+                                </div>
+                            </td>
+                            <td>
+                                @{
+                                    string badgeClass = log.Action switch
+                                    {
+                                        "DeleteDonor" => "bg-danger",
+                                        "EditDonor" => "bg-warning text-dark",
+                                        "ApproveRequest" => "bg-success",
+                                        "RejectRequest" => "bg-secondary",
+                                        "MakeEmergency" => "bg-danger",
+                                        _ => "bg-info text-dark"
+                                    };
+                                    string icon = log.Action switch
+                                    {
+                                        "DeleteDonor" => "bi-trash3-fill",
+                                        "EditDonor" => "bi-pencil-fill",
+                                        "ApproveRequest" => "bi-check-circle-fill",
+                                        "RejectRequest" => "bi-x-circle-fill",
+                                        "MakeEmergency" => "bi-exclamation-triangle-fill",
+                                        _ => "bi-gear-fill"
+                                    };
+                                }
+                                <span class="badge @badgeClass py-1.5 px-2">
+                                    <i class="bi @icon me-1"></i>@log.Action
+                                </span>
+                            </td>
+                            <td>
+                                <span class="fw-medium">@log.EntityType</span>
+                                @if (log.EntityId.HasValue)
+                                {
+                                    <span class="text-muted" style="font-size: 0.85rem;">(ID: @log.EntityId.Value)</span>
+                                }
+                            </td>
+                            <td>
+                                <span class="text-dark" style="font-size: 0.95rem;">@log.Details</span>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

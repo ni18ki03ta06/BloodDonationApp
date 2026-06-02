@@ -1,0 +1,155 @@
+@model BloodDonationApp.Models.Donor
+@{
+    ViewData["Title"] = "Register as Donor - Donora";
+}
+
+<div class="row justify-content-center py-4 animate-fade-in">
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm p-4 p-md-5">
+            <h1 class="h2 mb-2 text-center font-serif text-danger">Become a Lifesaver</h1>
+            <p class="text-muted text-center mb-4">Register as a blood donor in the Donora database and help patients in need.</p>
+            
+            <form asp-action="Register" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                
+                <div class="row">
+                    <div class="col-md-6 form-group mb-3">
+                        <label asp-for="Name" class="form-label text-uppercase small fw-bold text-danger"></label>
+                        <input asp-for="Name" class="form-control" placeholder="e.g. John Doe" required />
+                        <span asp-validation-for="Name" class="text-danger small"></span>
+                    </div>
+                    
+                    <div class="col-md-6 form-group mb-3">
+                        <label asp-for="BloodType" class="form-label text-uppercase small fw-bold text-danger">Blood Type</label>
+                        <select asp-for="BloodType" class="form-select" required>
+                            <option value="">-- Select Blood Type --</option>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+                        </select>
+                        <span asp-validation-for="BloodType" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 form-group mb-3">
+                        <label asp-for="Phone" class="form-label text-uppercase small fw-bold text-danger">Phone Number</label>
+                        <input asp-for="Phone" class="form-control" placeholder="e.g. 9876543210" required />
+                        <span asp-validation-for="Phone" class="text-danger small"></span>
+                    </div>
+                    
+                    <div class="col-md-6 form-group mb-3">
+                        <label asp-for="Email" class="form-label text-uppercase small fw-bold text-danger"></label>
+                        <input asp-for="Email" class="form-control" type="email" placeholder="e.g. john@example.com" required />
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 form-group mb-3">
+                        <label asp-for="Password" class="form-label text-uppercase small fw-bold text-danger">Password</label>
+                        <div class="input-group">
+                            <input asp-for="Password" type="password" id="txtPassword" class="form-control" placeholder="••••••••" required />
+                            <button class="btn btn-outline-dark" type="button" id="btnTogglePassword" style="border-left: none;">
+                                <i class="bi bi-eye-slash" id="eyeIcon"></i>
+                            </button>
+                        </div>
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+                    
+                    <div class="col-md-6 form-group mb-3">
+                        <label asp-for="ConfirmPassword" class="form-label text-uppercase small fw-bold text-danger">Confirm Password</label>
+                        <div class="input-group">
+                            <input asp-for="ConfirmPassword" type="password" id="txtConfirmPassword" class="form-control" placeholder="••••••••" required />
+                            <button class="btn btn-outline-dark" type="button" id="btnToggleConfirmPassword" style="border-left: none;">
+                                <i class="bi bi-eye-slash" id="confirmEyeIcon"></i>
+                            </button>
+                        </div>
+                        <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 form-group mb-3">
+                        <label asp-for="Age" class="form-label text-uppercase small fw-bold text-danger"></label>
+                        <input asp-for="Age" class="form-control" type="number" min="18" max="65" placeholder="e.g. 25" required />
+                        <span asp-validation-for="Age" class="text-danger small"></span>
+                    </div>
+                    
+                    <div class="col-md-6 form-group mb-3">
+                        <label asp-for="Gender" class="form-label text-uppercase small fw-bold text-danger">Gender</label>
+                        <select asp-for="Gender" class="form-select" required>
+                            <option value="">-- Select Gender --</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <span asp-validation-for="Gender" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12 form-group mb-3">
+                        <label asp-for="Address" class="form-label text-uppercase small fw-bold text-danger">Full Address</label>
+                        <input asp-for="Address" class="form-control" placeholder="e.g. Flat 101, building name, street name" required />
+                        <span asp-validation-for="Address" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 form-group mb-3">
+                        <label asp-for="State" class="form-label text-uppercase small fw-bold text-danger"></label>
+                        <input asp-for="State" class="form-control" placeholder="e.g. Maharashtra" required />
+                        <span asp-validation-for="State" class="text-danger small"></span>
+                    </div>
+                    
+                    <div class="col-md-6 form-group mb-3">
+                        <label asp-for="PinCode" class="form-label text-uppercase small fw-bold text-danger">Pin Code</label>
+                        <input asp-for="PinCode" class="form-control" placeholder="e.g. 400001" required />
+                        <span asp-validation-for="PinCode" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 form-group mb-3">
+                        <label asp-for="City" class="form-label text-uppercase small fw-bold text-danger"></label>
+                        <input asp-for="City" class="form-control" placeholder="e.g. Mumbai" required />
+                        <span asp-validation-for="City" class="text-danger small"></span>
+                    </div>
+                    
+                    <div class="col-md-6 form-group mb-4">
+                        <label asp-for="LastDonationDate" class="form-label text-uppercase small fw-bold text-danger">Last Donation Date</label>
+                        <input asp-for="LastDonationDate" class="form-control" type="date" />
+                        <span asp-validation-for="LastDonationDate" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12 form-group mb-4">
+                        <label asp-for="ProfilePhoto" class="form-label text-uppercase small fw-bold text-danger">Profile Photo</label>
+                        <input asp-for="ProfilePhoto" type="file" class="form-control" accept="image/*" />
+                        <span asp-validation-for="ProfilePhoto" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="form-group mt-3">
+                    <button type="submit" class="btn btn-primary w-100 py-3 text-uppercase">Submit Registration</button>
+                </div>
+            </form>
+            
+            <div class="text-center mt-4">
+                <p class="mb-0 text-muted small">Already registered? <a asp-controller="Account" asp-action="UserLogin" class="text-danger fw-bold text-decoration-none">Sign in to your portal</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

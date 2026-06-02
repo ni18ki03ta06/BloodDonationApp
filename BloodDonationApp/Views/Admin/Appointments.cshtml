@@ -1,0 +1,188 @@
+@model IEnumerable<BloodDonationApp.Models.Appointment>
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Appointments Manager";
+
+    var pendingCount = Model.Count(a => a.Status == "Pending");
+    var approvedCount = Model.Count(a => a.Status == "Approved");
+    var completedCount = Model.Count(a => a.Status == "Completed");
+}
+
+<!-- FullCalendar.js CDN dependencies -->
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet" />
+
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <div>
+            <h2 class="fw-bold" style="font-family: 'Times New Roman', Georgia, serif; color: #3D1212;">
+                Appointments Manager
+            </h2>
+            <p class="text-muted mb-0">Review, approve, and track donor blood donation scheduling slots</p>
+        </div>
+    </div>
+
+    <!-- Stats Summary Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-3 border-start border-4 border-warning bg-white" style="border-radius: 12px;">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="text-uppercase text-muted small font-monospace fw-bold">Pending Review</span>
+                        <h3 class="fw-bold mb-0 mt-1">@pendingCount</h3>
+                    </div>
+                    <div class="p-2 bg-warning bg-opacity-10 text-warning rounded-3">
+                        <i class="bi bi-clock-history fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-3 border-start border-4 border-info bg-white" style="border-radius: 12px;">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="text-uppercase text-muted small font-monospace fw-bold">Approved / Scheduled</span>
+                        <h3 class="fw-bold mb-0 mt-1">@approvedCount</h3>
+                    </div>
+                    <div class="p-2 bg-info bg-opacity-10 text-info rounded-3">
+                        <i class="bi bi-calendar-check fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-3 border-start border-4 border-success bg-white" style="border-radius: 12px;">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="text-uppercase text-muted small font-monospace fw-bold">Completed Donations</span>
+                        <h3 class="fw-bold mb-0 mt-1">@completedCount</h3>
+                    </div>
+                    <div class="p-2 bg-success bg-opacity-10 text-success rounded-3">
+                        <i class="bi bi-clipboard2-check fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Calendar View (Left Column) -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm p-4 h-100 bg-white" style="border-radius: 16px;">
+                <h5 class="fw-bold mb-4" style="font-family: 'Times New Roman', Georgia, serif; color: #3D1212;">
+                    <i class="bi bi-calendar3 text-gold me-2"></i> Clinic Scheduling Load
+                </h5>
+                <div id="calendar" style="min-height: 450px;"></div>
+            </div>
+        </div>
+
+        <!-- Appointment Workflow Lists (Right Column) -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm p-4 h-100 bg-white" style="border-radius: 16px;">
+                <h5 class="fw-bold mb-4" style="font-family: 'Times New Roman', Georgia, serif; color: #3D1212;">
+                    <i class="bi bi-kanban text-gold me-2"></i> Scheduling Queue
+                </h5>
+
+                <!-- Tabs Navigation -->
+                <ul class="nav nav-pills mb-3 font-monospace text-uppercase" id="pills-tab" role="tablist" style="font-size: 0.75rem;">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="pills-pending-tab" data-bs-toggle="pill" data-bs-target="#pills-pending" type="button" role="tab">
+                            Pending (@pendingCount)
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="pills-approved-tab" data-bs-toggle="pill" data-bs-target="#pills-approved" type="button" role="tab">
+                            Approved (@approvedCount)
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="pills-completed-tab" data-bs-toggle="pill" data-bs-target="#pills-completed" type="button" role="tab">
+                            Completed (@completedCount)
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="pills-all-tab" data-bs-toggle="pill" data-bs-target="#pills-all" type="button" role="tab">
+                            All Records (@Model.Count())
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- Tabs Content -->
+                <div class="tab-content" id="pills-tabContent" style="max-height: 520px; overflow-y: auto;">
+                    
+                    <!-- Pending Tab -->
+                    <div class="tab-pane fade show active" id="pills-pending" role="tabpanel">
+                        @await Html.PartialAsync("_AppointmentsTable", Model.Where(a => a.Status == "Pending"), new ViewDataDictionary(ViewData) { { "Tab", "Pending" } })
+                    </div>
+
+                    <!-- Approved Tab -->
+                    <div class="tab-pane fade" id="pills-approved" role="tabpanel">
+                        @await Html.PartialAsync("_AppointmentsTable", Model.Where(a => a.Status == "Approved"), new ViewDataDictionary(ViewData) { { "Tab", "Approved" } })
+                    </div>
+
+                    <!-- Completed Tab -->
+                    <div class="tab-pane fade" id="pills-completed" role="tabpanel">
+                        @await Html.PartialAsync("_AppointmentsTable", Model.Where(a => a.Status == "Completed"), new ViewDataDictionary(ViewData) { { "Tab", "Completed" } })
+                    </div>
+
+                    <!-- All Tab -->
+                    <div class="tab-pane fade" id="pills-all" role="tabpanel">
+                        @await Html.PartialAsync("_AppointmentsTable", Model, new ViewDataDictionary(ViewData) { { "Tab", "All" } })
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- FullCalendar JS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const calendarEl = document.getElementById('calendar');
+            
+            // Map Model to calendar events
+            const events = [];
+            @if (Model != null)
+            {
+                @foreach (var appt in Model)
+                {
+                    var eventColor = "#ffc107"; // Pending
+                    if (appt.Status == "Approved") eventColor = "#17a2b8"; // Approved
+                    else if (appt.Status == "Completed") eventColor = "#28a745"; // Completed
+                    else if (appt.Status == "Cancelled") eventColor = "#6c757d"; // Cancelled
+                    
+                    var donorName = appt.Donor?.Name ?? "Unknown Donor";
+                    var bloodType = appt.Donor?.BloodType ?? "";
+                    
+                    <text>
+                    events.push({
+                        title: "@(donorName) (@(bloodType)) - @(appt.TimeSlot?.Split(" - ")[0] ?? "")",
+                        start: "@appt.AppointmentDate.ToString("yyyy-MM-dd")",
+                        color: "@eventColor",
+                        description: "Donor: @(donorName) | Status: @appt.Status | Slot: @appt.TimeSlot"
+                    });
+                    </text>
+                }
+            }
+
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                themeSystem: 'standard',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek'
+                },
+                events: events,
+                eventDidMount: function(info) {
+                    info.el.title = info.event.extendedProps.description || info.event.title;
+                }
+            });
+
+            calendar.render();
+        });
+    </script>
+}

@@ -1,0 +1,19 @@
+@inject BloodDonationApp.Data.ApplicationDbContext DbContext
+@using Microsoft.EntityFrameworkCore
+@using System.Linq
+
+@{
+    var today = DateTime.Today;
+    var criticalRequests = await DbContext.BloodRequests
+        .Where(r => r.Status == "Pending" && r.UrgencyLevel == BloodDonationApp.Models.UrgencyLevel.Critical && r.RequiredDate >= today)
+        .ToListAsync();
+}
+@if (criticalRequests != null && criticalRequests.Any())
+{
+    foreach (var request in criticalRequests)
+    {
+        <div class="alert alert-danger rounded-0 border-0 m-0 py-3 text-center" role="alert" style="background-color: #DC3545; color: white; font-family: 'Times New Roman', serif; font-size: 1.1rem; letter-spacing: 0.5px; border-bottom: 2px solid #B5894A !important;">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>URGENT: @request.BloodType blood needed at @request.Hospital, @request.City — Contact: @request.ContactNumber
+        </div>
+    }
+}

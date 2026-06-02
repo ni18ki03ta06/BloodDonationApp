@@ -1,0 +1,490 @@
+@model BloodDonationApp.Controllers.MatchDonorsViewModel
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@using System.Text.Encodings.Web
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Find Matching Donors";
+    var apiKey = Configuration["GoogleMaps:ApiKey"];
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+    <h1 style="font-family: 'Times New Roman', serif; color: #5C1A1A;" class="fw-bold">AI Donor Recommendation Engine</h1>
+    <a asp-action="BloodRequests" class="btn btn-outline-secondary btn-sm text-uppercase fw-bold shadow-sm"><i class="bi bi-arrow-left"></i> Back to Requests</a>
+</div>
+
+<!-- Blood Request Summary Card -->
+<div class="card border-0 shadow-sm mb-4" style="background: linear-gradient(135deg, #FDFBF7 0%, #F5EFEB 100%); border: 1px solid #E8DDD5 !important;">
+    <div class="card-header bg-dark text-white py-3 border-0">
+        <h5 class="mb-0 text-uppercase fw-bold" style="letter-spacing: 1px; font-size: 0.9rem;"><i class="bi bi-clipboard-pulse text-danger"></i> Target Blood Request Details</h5>
+    </div>
+    <div class="card-body p-4">
+        <div class="row g-3">
+            <div class="col-md-3 col-sm-6">
+                <span class="text-uppercase small fw-bold text-muted d-block">Patient Name</span>
+                <strong class="fs-5 text-dark">@Model.BloodRequest.PatientName</strong>
+                @if (Model.BloodRequest.IsAnonymous)
+                {
+                    <span class="badge bg-secondary ms-1" style="font-size: 0.7rem;">Anonymous</span>
+                }
+            </div>
+            <div class="col-md-2 col-sm-6">
+                <span class="text-uppercase small fw-bold text-muted d-block">Required Type</span>
+                <span class="badge bg-danger fs-5 py-2 px-3 shadow-sm">@Model.BloodRequest.BloodType</span>
+            </div>
+            <div class="col-md-2 col-sm-6">
+                <span class="text-uppercase small fw-bold text-muted d-block">Urgency Level</span>
+                @{
+                    var urgencyClass = Model.BloodRequest.UrgencyLevel switch
+                    {
+                        BloodDonationApp.Models.UrgencyLevel.Critical => "bg-danger",
+                        BloodDonationApp.Models.UrgencyLevel.Urgent => "bg-warning text-dark",
+                        _ => "bg-success"
+                    };
+                }
+                <span class="badge @urgencyClass text-uppercase py-1 px-2 mt-1 shadow-sm">@Model.BloodRequest.UrgencyLevel</span>
+            </div>
+            <div class="col-md-2 col-sm-6">
+                <span class="text-uppercase small fw-bold text-muted d-block">Units Needed</span>
+                <span class="fw-bold text-dark fs-5">@Model.BloodRequest.Units Unit(s)</span>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <span class="text-uppercase small fw-bold text-muted d-block">Required Date</span>
+                <span class="text-dark fw-bold">@Model.BloodRequest.RequiredDate.ToString("yyyy-MM-dd")</span>
+            </div>
+
+            <div class="col-md-3 col-sm-6 border-top pt-3">
+                <span class="text-uppercase small fw-bold text-muted d-block">Hospital</span>
+                <span class="text-dark"><i class="bi bi-hospital text-danger"></i> @Model.BloodRequest.Hospital</span>
+            </div>
+            <div class="col-md-3 col-sm-6 border-top pt-3">
+                <span class="text-uppercase small fw-bold text-muted d-block">City</span>
+                <span class="text-dark"><i class="bi bi-geo-alt-fill text-danger"></i> @Model.BloodRequest.City</span>
+            </div>
+            <div class="col-md-3 col-sm-6 border-top pt-3">
+                <span class="text-uppercase small fw-bold text-muted d-block">Inferred State</span>
+                <span class="text-dark">
+                    @if (!string.IsNullOrEmpty(Model.InferredState))
+                    {
+                        @Model.InferredState
+                    }
+                    else
+                    {
+                        <em class="text-muted">Unknown</em>
+                    }
+                </span>
+            </div>
+            <div class="col-md-3 col-sm-6 border-top pt-3">
+                <span class="text-uppercase small fw-bold text-muted d-block">Diagnosis / Context</span>
+                <span class="text-dark">@(string.IsNullOrEmpty(Model.BloodRequest.Diagnosis) ? "N/A" : Model.BloodRequest.Diagnosis)</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Proximity Map Card -->
+<div class="card border-0 shadow-sm mb-4" style="border: 1px solid #E8DDD5 !important;">
+    <div class="card-header bg-dark text-white py-3 border-0 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 text-uppercase fw-bold" style="letter-spacing: 1px; font-size: 0.9rem;"><i class="bi bi-map-fill text-warning"></i> Matching Proximity Map</h5>
+        <span class="badge bg-danger shadow-sm"><i class="bi bi-hospital"></i> Target: @Model.BloodRequest.Hospital (@Model.BloodRequest.City)</span>
+    </div>
+    <div id="map-container" style="width: 100%; height: 380px; background-color: #e9ecef; position: relative;">
+        <div id="map-canvas" style="width: 100%; height: 100%;"></div>
+        <div id="map-fallback-badge" class="position-absolute bottom-0 start-0 m-3 px-2 py-1 bg-dark text-white rounded opacity-75 small d-none" style="z-index: 1000;">
+            <i class="bi bi-info-circle-fill text-warning"></i> OpenStreetMap Active (Offline Fallback)
+        </div>
+    </div>
+</div>
+
+
+<!-- Scored Recommendations -->
+<h3 style="font-family: 'Times New Roman', serif;" class="mb-4 text-dark border-bottom pb-2">
+    <i class="bi bi-cpu text-danger"></i> AI Recommended Donors
+</h3>
+
+@if (!Model.RankedDonors.Any())
+{
+    <div class="alert alert-warning py-4 text-center border-0 shadow-sm mb-0">
+        <h5 class="alert-heading fw-bold mb-2"><i class="bi bi-exclamation-triangle-fill fs-4 d-block mb-2"></i> No Matching Donors Found</h5>
+        <p class="mb-0 text-muted">
+            There are no verified and available donors with compatible blood types (@string.Join(", ", BloodDonationApp.Helpers.BloodCompatibilityHelper.GetCompatibleBloodTypes(Model.BloodRequest.BloodType))) registered.
+        </p>
+    </div>
+}
+else
+{
+    <div class="row">
+        @foreach (var rec in Model.RankedDonors)
+        {
+            var donor = rec.Donor;
+            var badge = BloodDonationApp.Helpers.DonorBadgeHelper.GetBadge(donor.TotalDonations);
+            var isSameCity = donor.City.Trim().ToLower() == Model.BloodRequest.City.Trim().ToLower();
+
+            // Progress bar and score color
+            string scoreColorClass = rec.Score switch
+            {
+                >= 85 => "bg-success",
+                >= 60 => "bg-info text-dark",
+                >= 40 => "bg-warning text-dark",
+                _ => "bg-danger"
+            };
+
+            string textScoreColorClass = rec.Score switch
+            {
+                >= 85 => "text-success",
+                >= 60 => "text-info",
+                >= 40 => "text-warning",
+                _ => "text-danger"
+            };
+
+            <div class="col-12 col-lg-6 mb-4">
+                <div class="card border-0 shadow-sm h-100 position-relative transition-hover" style="border: 1px solid #E8DDD5 !important; border-left: 5px solid @(rec.IsEligible ? "#28A745" : "#DC3545") !important;">
+                    <div class="card-body p-4 d-flex flex-column">
+                        
+                        <!-- Top Header Row -->
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h4 class="mb-1 fw-bold text-dark" style="font-family: 'Times New Roman', serif;">@donor.Name</h4>
+                                <span class="badge" style="background-color: @badge.ColorClass; font-size: 0.75rem;">@badge.Name</span>
+                                <span class="badge bg-secondary ms-1" style="font-size: 0.75rem;"><i class="bi bi-trophy"></i> @donor.TotalDonations donation(s)</span>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-danger fs-5 py-2 px-3 shadow-sm">@donor.BloodType</span>
+                                <div class="mt-1">
+                                    @if (rec.IsEligible)
+                                    {
+                                        <span class="badge bg-success text-uppercase py-1 px-2 small shadow-sm"><i class="bi bi-check-circle-fill"></i> Eligible</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger text-uppercase py-1 px-2 small shadow-sm"><i class="bi bi-x-circle-fill"></i> Ineligible</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Score Match Meter -->
+                        <div class="mb-3 p-3 bg-light rounded border border-light shadow-inner">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="small fw-bold text-muted text-uppercase">Recommendation Match Score</span>
+                                <strong class="fs-4 @textScoreColorClass">@rec.Score%</strong>
+                            </div>
+                            <div class="progress" style="height: 10px;">
+                                <div class="progress-bar @scoreColorClass" role="progressbar" style="width: @rec.Score%" aria-valuenow="@rec.Score" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                        </div>
+
+                        <!-- Info & Proximity Rows -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-sm-6 small">
+                                <span class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.65rem;">Contact Information</span>
+                                <span class="text-dark"><i class="bi bi-telephone"></i> @donor.Phone</span><br />
+                                <span class="text-dark"><i class="bi bi-envelope"></i> @donor.Email</span>
+                            </div>
+                            <div class="col-sm-6 small border-start ps-3">
+                                <span class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.65rem;">Proximity & Location</span>
+                                <span class="text-dark"><i class="bi bi-geo-alt-fill text-danger"></i> @donor.City, @donor.State</span><br />
+                                <span class="text-dark fw-bold">
+                                    <i class="bi bi-cursor-fill text-primary"></i> Est. Distance: @rec.EstimatedDistance.ToString("F1") km
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Scoring Breakdown Reasons -->
+                        <div class="mt-2 border-top pt-3">
+                            <span class="text-uppercase small fw-bold text-muted d-block mb-2" style="font-size: 0.7rem; letter-spacing: 0.5px;">Scoring Breakdown Details</span>
+                            <ul class="list-unstyled mb-0">
+                                @foreach (var reason in rec.Reasons)
+                                {
+                                    var isNegative = reason.Contains("Ineligible") || reason.Contains("unavailable");
+                                    var textClass = isNegative ? "text-danger fw-bold" : "text-muted";
+                                    var iconClass = isNegative ? "bi-exclamation-triangle-fill text-danger" : "bi-check2 text-success";
+                                    
+                                    <li class="small @textClass mb-1">
+                                        <i class="bi @iconClass me-2"></i> @reason
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+
+                        <!-- Assign Action Button -->
+                        <div class="mt-auto pt-4 border-top">
+                            @if (rec.IsEligible)
+                            {
+                                <form asp-action="AssignDonor" method="post" class="w-100">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="requestId" value="@Model.BloodRequest.Id" />
+                                    <input type="hidden" name="donorId" value="@donor.Id" />
+                                    <button type="submit" class="btn btn-danger w-100 text-uppercase fw-bold py-2 shadow-sm">
+                                        <i class="bi bi-check2-square"></i> Assign This Donor
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <button type="button" class="btn btn-outline-secondary w-100 text-uppercase fw-bold py-2" disabled>
+                                    <i class="bi bi-slash-circle"></i> Donor Ineligible / Unavailable
+                                </button>
+                            }
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+<table style="display:none;">
+    <tbody>
+        @foreach (var rec in Model.RankedDonors)
+        {
+            var donor = rec.Donor;
+            <tr>
+                <td><strong>@donor.Name</strong></td>
+                <td>
+                    @if (rec.IsEligible)
+                    {
+                        <form asp-action="AssignDonor" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="requestId" value="@Model.BloodRequest.Id" />
+                            <input type="hidden" name="donorId" value="@donor.Id" />
+                            <button type="submit">Assign</button>
+                        </form>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<style>
+    .transition-hover {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .transition-hover:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+    }
+    .shadow-inner {
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);
+    }
+</style>
+
+@section Scripts {
+    <script>
+        const requestLat = parseFloat("@(Model.BloodRequest.Latitude ?? 18.5204)");
+        const requestLng = parseFloat("@(Model.BloodRequest.Longitude ?? 73.8567)");
+        const requestHospital = "@Html.Raw(JavaScriptEncoder.Default.Encode(Model.BloodRequest.Hospital))";
+        const requestCity = "@Html.Raw(JavaScriptEncoder.Default.Encode(Model.BloodRequest.City))";
+        const requestBloodType = "@Model.BloodRequest.BloodType";
+
+        const donors = [
+            @foreach (var rec in Model.RankedDonors)
+            {
+                <text>{
+                    id: @rec.Donor.Id,
+                    name: "@Html.Raw(JavaScriptEncoder.Default.Encode(rec.Donor.Name))",
+                    bloodType: "@rec.Donor.BloodType",
+                    city: "@Html.Raw(JavaScriptEncoder.Default.Encode(rec.Donor.City))",
+                    lat: @(rec.Donor.Latitude ?? 18.5204),
+                    lng: @(rec.Donor.Longitude ?? 73.8567),
+                    distance: @rec.EstimatedDistance,
+                    score: @rec.Score,
+                    isEligible: @(rec.IsEligible ? "true" : "false")
+                },</text>
+            }
+        ];
+
+        let activeMap = null;
+        let mapMarkers = {};
+        let mapType = "google";
+
+        function initMap() {
+            const isGoogleLoaded = typeof google !== "undefined" && google.maps && "@apiKey" !== "YOUR_GOOGLE_MAPS_API_KEY";
+
+            if (isGoogleLoaded) {
+                initializeGoogleMap();
+            } else {
+                initializeLeafletMapFallback();
+            }
+        }
+
+        function initializeGoogleMap() {
+            mapType = "google";
+            const mapOptions = {
+                zoom: 11,
+                center: { lat: requestLat, lng: requestLng }
+            };
+
+            const mapCanvas = document.getElementById('map-canvas');
+            activeMap = new google.maps.Map(mapCanvas, mapOptions);
+
+            // Target Hospital Marker (Blue)
+            const hospitalMarker = new google.maps.Marker({
+                position: { lat: requestLat, lng: requestLng },
+                map: activeMap,
+                title: `${requestHospital} (Target)`,
+                icon: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png'
+            });
+
+            const infoWindow = new google.maps.InfoWindow({
+                content: `<strong>${requestHospital}</strong><br>Target Blood Type: ${requestBloodType}`
+            });
+            hospitalMarker.addListener('click', () => {
+                infoWindow.open(activeMap, hospitalMarker);
+            });
+
+            const bounds = new google.maps.LatLngBounds();
+            bounds.extend({ lat: requestLat, lng: requestLng });
+
+            // Populate Donor Markers
+            donors.forEach(d => {
+                const pos = { lat: d.lat, lng: d.lng };
+                // Pin color based on eligibility and score
+                let pinIcon = 'https://maps.google.com/mapfiles/ms/icons/red-dot.png';
+                if (d.isEligible) {
+                    if (d.score >= 80) {
+                        pinIcon = 'https://maps.google.com/mapfiles/ms/icons/green-dot.png';
+                    } else if (d.score >= 50) {
+                        pinIcon = 'https://maps.google.com/mapfiles/ms/icons/yellow-dot.png';
+                    }
+                }
+
+                const marker = new google.maps.Marker({
+                    position: pos,
+                    map: activeMap,
+                    title: d.name,
+                    icon: pinIcon
+                });
+
+                bounds.extend(pos);
+
+                const donorInfoWindow = new google.maps.InfoWindow({
+                    content: `
+                        <div style="font-family: 'Times New Roman', serif; min-width: 150px;">
+                            <h5 style="color: #C0392B; margin-bottom: 2px;">${d.name}</h5>
+                            <span class="badge bg-danger">${d.bloodType}</span>
+                            <span class="badge ${d.isEligible ? 'bg-success' : 'bg-secondary'}">${d.isEligible ? 'Eligible' : 'Ineligible'}</span>
+                            <p class="small text-muted mt-2 mb-0">Match Score: <strong>${d.score}%</strong><br>Distance: ${d.distance.toFixed(1)} km</p>
+                        </div>
+                    `
+                });
+
+                marker.addListener('click', () => {
+                    donorInfoWindow.open(activeMap, marker);
+                });
+
+                mapMarkers[`donor_${d.id}`] = marker;
+            });
+
+            if (donors.length > 0) {
+                activeMap.fitBounds(bounds);
+            }
+        }
+
+        function initializeLeafletMapFallback() {
+            mapType = "leaflet";
+            document.getElementById('map-fallback-badge').classList.remove('d-none');
+
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+            document.head.appendChild(link);
+
+            const script = document.createElement('script');
+            script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+            script.onload = () => {
+                const mapCanvas = document.getElementById('map-canvas');
+                mapCanvas.innerHTML = "";
+
+                activeMap = L.map(mapCanvas).setView([requestLat, requestLng], 11);
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(activeMap);
+
+                // Custom Icons
+                const blueIcon = L.icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowSize: [41, 41]
+                });
+
+                const redIcon = L.icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowSize: [41, 41]
+                });
+
+                const greenIcon = L.icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowSize: [41, 41]
+                });
+
+                const yellowIcon = L.icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-gold.png',
+                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowSize: [41, 41]
+                });
+
+                // Target Hospital Marker
+                L.marker([requestLat, requestLng], { icon: blueIcon })
+                    .addTo(activeMap)
+                    .bindPopup(`<strong>${requestHospital} (Target)</strong><br>Target Blood Type: ${requestBloodType}`)
+                    .openPopup();
+
+                const bounds = L.latLngBounds([requestLat, requestLng]);
+
+                // Donor Markers
+                donors.forEach(d => {
+                    let pinIcon = redIcon;
+                    if (d.isEligible) {
+                        if (d.score >= 80) {
+                            pinIcon = greenIcon;
+                        } else if (d.score >= 50) {
+                            pinIcon = yellowIcon;
+                        }
+                    }
+
+                    const marker = L.marker([d.lat, d.lng], { icon: pinIcon })
+                        .addTo(activeMap)
+                        .bindPopup(`
+                            <div style="font-family: 'Times New Roman', serif; min-width: 150px;">
+                                <h5 style="color: #C0392B; margin-bottom: 2px;">${d.name}</h5>
+                                <span class="badge bg-danger text-white">${d.bloodType}</span>
+                                <span class="badge ${d.isEligible ? 'bg-success text-white' : 'bg-secondary text-white'}">${d.isEligible ? 'Eligible' : 'Ineligible'}</span>
+                                <p class="small text-muted mt-2 mb-0">Match Score: <strong>${d.score}%</strong><br>Distance: ${d.distance.toFixed(1)} km</p>
+                            </div>
+                        `);
+                    
+                    bounds.extend([d.lat, d.lng]);
+                    mapMarkers[`donor_${d.id}`] = marker;
+                });
+
+                if (donors.length > 0) {
+                    activeMap.fitBounds(bounds, { padding: [30, 30] });
+                }
+            };
+            document.head.appendChild(script);
+        }
+
+        document.addEventListener("DOMContentLoaded", initMap);
+    </script>
+
+    @if (!string.IsNullOrEmpty(apiKey) && apiKey != "YOUR_GOOGLE_MAPS_API_KEY")
+    {
+        <script src="https://maps.googleapis.com/maps/api/js?key=@apiKey&callback=initMap" async defer></script>
+    }
+}

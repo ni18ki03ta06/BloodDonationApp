@@ -1,0 +1,619 @@
+@using BloodDonationApp.Models
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Advanced Analytics Dashboard";
+    
+    // Extract view bags
+    var bloodTypeStats = ViewBag.BloodTypeStats as Dictionary<string, int> ?? new Dictionary<string, int>();
+    var tierStats = ViewBag.TierStats as Dictionary<string, int> ?? new Dictionary<string, int>();
+    var inventory = ViewBag.Inventory as List<BloodInventory> ?? new List<BloodInventory>();
+    var donationTypeStats = ViewBag.DonationTypeStats as Dictionary<string, int> ?? new Dictionary<string, int>();
+    var monthlyRequestStats = ViewBag.MonthlyRequestStats as Dictionary<string, int> ?? new Dictionary<string, int>();
+    var monthlyDonationStats = ViewBag.MonthlyDonationStats as Dictionary<string, int> ?? new Dictionary<string, int>();
+    
+    var filterMonth = ViewBag.FilterMonth as int?;
+    var filterYear = ViewBag.FilterYear as int?;
+    var availableYears = ViewBag.AvailableYears as List<int> ?? new List<int> { DateTime.Today.Year };
+    
+    // Month Names
+    var monthNames = new[] { "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" };
+}
+
+<style>
+    .analytics-card {
+        border: none;
+        border-radius: 16px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        background: #ffffff;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    }
+    .analytics-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    }
+    .text-gold {
+        color: #B5894A !important;
+    }
+    .bg-dark-editorial {
+        background-color: #1C1A17 !important;
+    }
+    .btn-gold {
+        background-color: #B5894A !important;
+        color: #ffffff !important;
+        border: 1px solid #B5894A !important;
+        transition: all 0.3s ease;
+    }
+    .btn-gold:hover {
+        background-color: #9C7137 !important;
+        border-color: #9C7137 !important;
+    }
+    .btn-outline-gold {
+        color: #B5894A !important;
+        border: 1px solid #B5894A !important;
+        background: transparent;
+        transition: all 0.3s ease;
+    }
+    .btn-outline-gold:hover {
+        background-color: #B5894A !important;
+        color: #ffffff !important;
+    }
+</style>
+
+<div class="container-fluid py-4" id="analytics-dashboard-wrapper">
+    
+    <!-- Top Action Bar -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-3 border-bottom">
+        <div>
+            <h1 class="fw-bold mb-1" style="font-family: 'Times New Roman', Georgia, serif; color: #3D1212;">
+                Advanced Analytics Dashboard
+            </h1>
+            <p class="text-muted mb-0">Overview of blood supply metrics, request volumes, and donor tiers</p>
+        </div>
+        <div class="d-flex gap-2 mt-3 mt-md-0 align-items-center">
+            <a href="/Admin/ExportDonors" class="btn btn-outline-gold text-uppercase fw-bold font-monospace px-2" style="font-size: 0.75rem;">
+                <i class="bi bi-file-earmark-arrow-down-fill"></i> Donors CSV
+            </a>
+            <a href="/Admin/ExportRequests" class="btn btn-outline-gold text-uppercase fw-bold font-monospace px-2" style="font-size: 0.75rem;">
+                <i class="bi bi-file-earmark-arrow-down-fill"></i> Requests CSV
+            </a>
+            <a href="/Admin/ExportDonationHistory" class="btn btn-outline-gold text-uppercase fw-bold font-monospace px-2" style="font-size: 0.75rem;">
+                <i class="bi bi-file-earmark-arrow-down-fill"></i> History CSV
+            </a>
+            <button id="btn-export-pdf" class="btn btn-gold text-uppercase fw-bold font-monospace px-3" style="font-size: 0.8rem;">
+                <i class="bi bi-file-earmark-pdf-fill me-1"></i> Export PDF
+            </button>
+            <button id="btn-export-excel" class="btn btn-outline-gold text-uppercase fw-bold font-monospace px-3" style="font-size: 0.8rem;">
+                <i class="bi bi-file-earmark-spreadsheet-fill me-1"></i> Export Excel
+            </button>
+        </div>
+    </div>
+
+    <!-- Filter Card -->
+    <div class="card analytics-card mb-4">
+        <div class="card-body py-3 px-4">
+            <form method="get" asp-action="Reports" class="row align-items-center g-3">
+                <div class="col-auto">
+                    <span class="fw-bold text-muted font-monospace text-uppercase" style="font-size: 0.75rem;">
+                        <i class="bi bi-funnel-fill me-1 text-gold"></i> Filter Metrics:
+                    </span>
+                </div>
+                <div class="col-sm-3 col-md-2">
+                    <select name="filterMonth" class="form-select form-select-sm" onchange="this.form.submit()">
+                        <option value="">All Months</option>
+                        @for (int m = 1; m <= 12; m++)
+                        {
+                            if (filterMonth == m)
+                            {
+                                <option value="@m" selected>@monthNames[m - 1]</option>
+                            }
+                            else
+                            {
+                                <option value="@m">@monthNames[m - 1]</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-sm-3 col-md-2">
+                    <select name="filterYear" class="form-select form-select-sm" onchange="this.form.submit()">
+                        <option value="">All Years</option>
+                        @foreach (var y in availableYears)
+                        {
+                            if (filterYear == y)
+                            {
+                                <option value="@y" selected>@y</option>
+                            }
+                            else
+                            {
+                                <option value="@y">@y</option>
+                            }
+                        }
+                    </select>
+                </div>
+                @if (filterMonth.HasValue || filterYear.HasValue)
+                {
+                    <div class="col-auto">
+                        <a asp-action="Reports" class="btn btn-sm btn-outline-secondary text-uppercase font-monospace py-1" style="font-size: 0.7rem;">
+                            <i class="bi bi-x-circle me-1"></i> Clear Filters
+                        </a>
+                    </div>
+                }
+            </form>
+        </div>
+    </div>
+
+    <!-- Metrics Cards Row -->
+    <div class="row g-4 mb-4" id="metrics-cards-row">
+        <!-- Donors Card -->
+        <div class="col-md-3">
+            <div class="card analytics-card h-100 p-3 border-start border-4 border-primary">
+                <div class="card-body p-0 d-flex flex-column justify-content-between">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <span class="text-muted text-uppercase font-monospace fw-bold" style="font-size: 0.7rem;">Total Registered Donors</span>
+                            <h2 class="fw-bold mb-0 mt-1">@ViewBag.TotalDonors</h2>
+                        </div>
+                        <div class="p-2 bg-primary bg-opacity-10 text-primary rounded-3">
+                            <i class="bi bi-people-fill fs-4"></i>
+                        </div>
+                    </div>
+                    <div class="border-top pt-2 mt-auto d-flex justify-content-between align-items-center text-muted" style="font-size: 0.75rem;">
+                        <span>Available: <strong>@ViewBag.AvailableDonors</strong></span>
+                        <span>Busy: <strong>@(ViewBag.TotalDonors - ViewBag.AvailableDonors)</strong></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Donations Card -->
+        <div class="col-md-3">
+            <div class="card analytics-card h-100 p-3 border-start border-4 border-success">
+                <div class="card-body p-0 d-flex flex-column justify-content-between">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <span class="text-muted text-uppercase font-monospace fw-bold" style="font-size: 0.7rem;">Completed Donations</span>
+                            <h2 class="fw-bold mb-0 mt-1">@ViewBag.CompletedDonationsCount</h2>
+                        </div>
+                        <div class="p-2 bg-success bg-opacity-10 text-success rounded-3">
+                            <i class="bi bi-droplet-fill fs-4"></i>
+                        </div>
+                    </div>
+                    <div class="border-top pt-2 mt-auto d-flex justify-content-between align-items-center text-muted" style="font-size: 0.75rem;">
+                        <span>Total Units: <strong>@ViewBag.TotalUnitsDonated</strong></span>
+                        <span>Pending: <strong>@ViewBag.PendingDonationsCount</strong></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Requests Card -->
+        <div class="col-md-3">
+            <div class="card analytics-card h-100 p-3 border-start border-4 border-danger">
+                <div class="card-body p-0 d-flex flex-column justify-content-between">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <span class="text-muted text-uppercase font-monospace fw-bold" style="font-size: 0.7rem;">Blood Requests</span>
+                            <h2 class="fw-bold mb-0 mt-1">@ViewBag.TotalRequests</h2>
+                        </div>
+                        <div class="p-2 bg-danger bg-opacity-10 text-danger rounded-3">
+                            <i class="bi bi-heart-pulse-fill fs-4"></i>
+                        </div>
+                    </div>
+                    <div class="border-top pt-2 mt-auto d-flex justify-content-between align-items-center text-muted" style="font-size: 0.75rem;">
+                        <span>Emergency: <strong class="text-danger">@ViewBag.EmergencyRequests</strong></span>
+                        <span>Approved: <strong>@ViewBag.ApprovedRequests</strong></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stock Health Card -->
+        <div class="col-md-3">
+            @{
+                int totalStock = inventory.Sum(i => i.UnitsAvailable);
+                var healthStatus = "Normal";
+                var healthColor = "text-success";
+                var borderClass = "border-success";
+                if (totalStock < 40)
+                {
+                    healthStatus = "Critical Stock Level";
+                    healthColor = "text-danger";
+                    borderClass = "border-danger";
+                }
+                else if (totalStock < 80)
+                {
+                    healthStatus = "Low Stock Standing";
+                    healthColor = "text-warning-dark text-warning";
+                    borderClass = "border-warning";
+                }
+            }
+            <div class="card analytics-card h-100 p-3 border-start border-4 @borderClass">
+                <div class="card-body p-0 d-flex flex-column justify-content-between">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <span class="text-muted text-uppercase font-monospace fw-bold" style="font-size: 0.7rem;">Total Inventory Stock</span>
+                            <h2 class="fw-bold mb-0 mt-1">@totalStock <span class="fs-6 text-muted font-normal">units</span></h2>
+                        </div>
+                        <div class="p-2 bg-warning bg-opacity-10 text-warning rounded-3">
+                            <i class="bi bi-safe-fill fs-4 text-gold"></i>
+                        </div>
+                    </div>
+                    <div class="border-top pt-2 mt-auto d-flex justify-content-between align-items-center text-muted" style="font-size: 0.75rem;">
+                        <span>Status: <strong class="@healthColor">@healthStatus</strong></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Content Capture Target -->
+    <div id="analytics-dashboard-content">
+        <!-- Row 1: Charts Grid -->
+        <div class="row g-4 mb-4">
+            <!-- Chart 1: Blood Inventory Levels -->
+            <div class="col-lg-7">
+                <div class="card analytics-card p-4 h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="fw-bold mb-0" style="font-family: 'Times New Roman', Georgia, serif; color: #3D1212;">
+                            <i class="bi bi-bar-chart-fill text-gold me-2"></i> Blood Inventory & Donation Analytics
+                        </h5>
+                        <span class="badge bg-secondary font-monospace text-uppercase" style="font-size: 0.65rem;">Live Units</span>
+                    </div>
+                    <div style="position: relative; height: 320px;">
+                        <canvas id="inventoryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart 2: Request vs Donation trends -->
+            <div class="col-lg-5">
+                <div class="card analytics-card p-4 h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="fw-bold mb-0" style="font-family: 'Times New Roman', Georgia, serif; color: #3D1212;">
+                            <i class="bi bi-graph-up text-gold me-2"></i> Platform Activity Trends
+                        </h5>
+                        <span class="badge bg-secondary font-monospace text-uppercase" style="font-size: 0.65rem;">Last 6 Months</span>
+                    </div>
+                    <div style="position: relative; height: 320px;">
+                        <canvas id="trendsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 2: Donor Statistics Breakdown -->
+        <div class="row g-4 mb-4">
+            <!-- Donors by Blood Group Doughnut -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card analytics-card p-4 h-100">
+                    <h5 class="fw-bold mb-4" style="font-family: 'Times New Roman', Georgia, serif; color: #3D1212;">
+                        <i class="bi bi-pie-chart-fill text-gold me-2"></i> Donors by Blood Group
+                    </h5>
+                    <div style="position: relative; height: 260px;" class="d-flex justify-content-center">
+                        <canvas id="donorsByGroupChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Donor Badges Polar Area -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card analytics-card p-4 h-100">
+                    <h5 class="fw-bold mb-4" style="font-family: 'Times New Roman', Georgia, serif; color: #3D1212;">
+                        <i class="bi bi-award-fill text-gold me-2"></i> Donor Badge Tiers
+                    </h5>
+                    <div style="position: relative; height: 260px;" class="d-flex justify-content-center">
+                        <canvas id="badgeTiersChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Tables / Lists -->
+            <div class="col-lg-4">
+                <div class="card analytics-card p-4 h-100">
+                    <h5 class="fw-bold mb-3" style="font-family: 'Times New Roman', Georgia, serif; color: #3D1212;">
+                        <i class="bi bi-table text-gold me-2"></i> Stock & Donations Table
+                    </h5>
+                    <div class="table-responsive" style="max-height: 270px;">
+                        <table class="table table-sm table-hover align-middle" id="inventory-data-table">
+                            <thead class="table-light font-monospace text-uppercase" style="font-size: 0.7rem;">
+                                <tr>
+                                    <th>Type</th>
+                                    <th class="text-center">Stock</th>
+                                    <th class="text-center">Donated Units</th>
+                                    <th class="text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody style="font-size: 0.8rem;">
+                                @foreach (var item in inventory.OrderBy(i => i.BloodType))
+                                {
+                                    var donatedUnits = donationTypeStats.ContainsKey(item.BloodType) ? donationTypeStats[item.BloodType] : 0;
+                                    var statusText = "Good Standing";
+                                    var textClass = "text-success";
+                                    if (item.UnitsAvailable < 5)
+                                    {
+                                        statusText = "Critical";
+                                        textClass = "text-danger fw-bold";
+                                    }
+                                    else if (item.UnitsAvailable <= 15)
+                                    {
+                                        statusText = "Low Stock";
+                                        textClass = "text-warning fw-bold";
+                                    }
+                                    
+                                    <tr>
+                                        <td class="fw-bold">@item.BloodType</td>
+                                        <td class="text-center">@item.UnitsAvailable</td>
+                                        <td class="text-center">@donatedUnits</td>
+                                        <td class="text-center"><span class="@textClass">@statusText</span></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Chart.js and html2pdf.js CDN integrations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            
+            // --- DATA PREPARATION ---
+            // Inventory data
+            const bloodTypes = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
+            
+            // Map live inventory values
+            const inventoryMap = {};
+            @foreach(var item in inventory) {
+                <text>inventoryMap["@item.BloodType"] = @item.UnitsAvailable;</text>
+            }
+            const inventoryData = bloodTypes.map(t => inventoryMap[t] || 0);
+
+            // Map donation units values
+            const donationsMap = {};
+            @foreach(var item in donationTypeStats) {
+                <text>donationsMap["@item.Key"] = @item.Value;</text>
+            }
+            const donationsData = bloodTypes.map(t => donationsMap[t] || 0);
+
+            // Monthly Activity Trends
+            const months = [];
+            const requestTrend = [];
+            const donationTrend = [];
+            @foreach(var item in monthlyRequestStats) {
+                <text>
+                    months.push("@item.Key");
+                    requestTrend.push(@item.Value);
+                </text>
+            }
+            @foreach(var item in monthlyDonationStats) {
+                <text>
+                    donationTrend.push(@item.Value);
+                </text>
+            }
+
+            // Donors By Group
+            const donorsMap = {};
+            @foreach(var item in bloodTypeStats) {
+                <text>donorsMap["@item.Key"] = @item.Value;</text>
+            }
+            const donorsData = bloodTypes.map(t => donorsMap[t] || 0);
+
+            // Badge Tiers
+            const badgeLabels = [];
+            const badgeData = [];
+            @foreach(var item in tierStats) {
+                <text>
+                    badgeLabels.push("@item.Key");
+                    badgeData.push(@item.Value);
+                </text>
+            }
+
+            // --- CHART.JS CONFIGURATIONS ---
+
+            // Chart 1: Inventory & Donations (Double Bar)
+            const ctxInventory = document.getElementById('inventoryChart').getContext('2d');
+            new Chart(ctxInventory, {
+                type: 'bar',
+                data: {
+                    labels: bloodTypes,
+                    datasets: [
+                        {
+                            label: 'Available Stock (Units)',
+                            data: inventoryData,
+                            backgroundColor: 'rgba(181, 137, 74, 0.75)', // Gold/Tan
+                            borderColor: '#B5894A',
+                            borderWidth: 1.5,
+                            borderRadius: 6
+                        },
+                        {
+                            label: 'Units Donated (Selected Period)',
+                            data: donationsData,
+                            backgroundColor: 'rgba(61, 18, 18, 0.75)', // Maroon/Dark-red
+                            borderColor: '#3D1212',
+                            borderWidth: 1.5,
+                            borderRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top', labels: { boxWidth: 12, font: { family: 'monospace' } } }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#F1F1F1' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            // Chart 2: Donation vs Request Trends (Line)
+            const ctxTrends = document.getElementById('trendsChart').getContext('2d');
+            new Chart(ctxTrends, {
+                type: 'line',
+                data: {
+                    labels: months,
+                    datasets: [
+                        {
+                            label: 'Blood Requests Filed',
+                            data: requestTrend,
+                            borderColor: '#dc3545',
+                            backgroundColor: 'rgba(220, 53, 69, 0.05)',
+                            fill: true,
+                            tension: 0.35,
+                            borderWidth: 3,
+                            pointBackgroundColor: '#dc3545'
+                        },
+                        {
+                            label: 'Donations Completed',
+                            borderColor: '#28a745',
+                            backgroundColor: 'rgba(40, 167, 69, 0.05)',
+                            fill: true,
+                            tension: 0.35,
+                            borderWidth: 3,
+                            pointBackgroundColor: '#28a745'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top', labels: { boxWidth: 12, font: { family: 'monospace' } } }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#F1F1F1' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            // Chart 3: Donors by Blood Group (Doughnut)
+            const ctxDonors = document.getElementById('donorsByGroupChart').getContext('2d');
+            new Chart(ctxDonors, {
+                type: 'doughnut',
+                data: {
+                    labels: bloodTypes,
+                    datasets: [{
+                        data: donorsData,
+                        backgroundColor: [
+                            '#800000', '#A52A2A', '#D2691E', '#CD853F',
+                            '#8B0000', '#B22222', '#E9967A', '#FFA07A'
+                        ],
+                        borderWidth: 2,
+                        hoverOffset: 15
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right', labels: { boxWidth: 10, font: { size: 9, family: 'monospace' } } }
+                    }
+                }
+            });
+
+            // Chart 4: Badge Tiers (Polar Area)
+            const ctxBadges = document.getElementById('badgeTiersChart').getContext('2d');
+            new Chart(ctxBadges, {
+                type: 'polarArea',
+                data: {
+                    labels: badgeLabels,
+                    datasets: [{
+                        data: badgeData,
+                        backgroundColor: [
+                            'rgba(108, 117, 125, 0.7)', // New
+                            'rgba(0, 123, 255, 0.7)',   // First Drop
+                            'rgba(40, 167, 69, 0.7)',   // Hero
+                            'rgba(255, 193, 7, 0.7)',   // Champion
+                            'rgba(220, 53, 69, 0.7)'    // Legend
+                        ],
+                        borderColor: '#ffffff',
+                        borderWidth: 1.5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right', labels: { boxWidth: 10, font: { size: 9, family: 'monospace' } } }
+                    },
+                    scales: {
+                        r: { grid: { color: '#EAEAEA' }, ticks: { display: false } }
+                    }
+                }
+            });
+
+            // --- EXPORT TO PDF ---
+            $('#btn-export-pdf').click(function() {
+                const element = document.getElementById('analytics-dashboard-content');
+                
+                // Temporarily expand height or styling to fit pdf page if needed
+                const opt = {
+                    margin:       [10, 10, 10, 10],
+                    filename:     'Donora_Advanced_Analytics_@(filterMonth != null ? monthNames[filterMonth.Value - 1] : "AllTime")_@(filterYear != null ? filterYear.Value.ToString() : "").pdf',
+                    image:        { type: 'jpeg', quality: 0.98 },
+                    html2canvas:  { scale: 2, useCORS: true },
+                    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
+                };
+
+                html2pdf().set(opt).from(element).save();
+            });
+
+            // --- EXPORT TO EXCEL/CSV ---
+            $('#btn-export-excel').click(function() {
+                // We compile inventory stats, tier stats, and overall totals into a formatted CSV string
+                let csvContent = "data:text/csv;charset=utf-8,";
+                
+                // Add header details
+                csvContent += "DONORA ADVANCED ADMIN ANALYTICS REPORT\r\n";
+                csvContent += "Export Date: " + new Date().toISOString().split('T')[0] + "\r\n";
+                csvContent += "Filter Period: @(filterMonth != null ? monthNames[filterMonth.Value - 1] : "All Months") @(filterYear != null ? filterYear.Value.ToString() : "All Years")\r\n\r\n";
+                
+                // Add Dashboard Totals
+                csvContent += "1. KEY SUMMARY METRICS\r\n";
+                csvContent += "Metric,Value,Sub-details\r\n";
+                csvContent += "Total Registered Donors,@ViewBag.TotalDonors,Available: @ViewBag.AvailableDonors | Busy: @(ViewBag.TotalDonors - ViewBag.AvailableDonors)\r\n";
+                csvContent += "Completed Donations Count,@ViewBag.CompletedDonationsCount,Total Units Donated: @ViewBag.TotalUnitsDonated\r\n";
+                csvContent += "Total Blood Requests,@ViewBag.TotalRequests,Emergency: @ViewBag.EmergencyRequests | Approved: @ViewBag.ApprovedRequests\r\n";
+                csvContent += "Total Inventory Units Available,@totalStock,Standing: @healthStatus\r\n\r\n";
+                
+                // Add Blood Inventory breakdown
+                csvContent += "2. BLOOD GROUP STOCK & ACTIVITY\r\n";
+                csvContent += "Blood Type,Available Stock (Units),Donations Completed (Units),Donors Registered\r\n";
+                
+                bloodTypes.forEach(t => {
+                    const stock = inventoryMap[t] || 0;
+                    const donationUnits = donationsMap[t] || 0;
+                    const donors = donorsMap[t] || 0;
+                    csvContent += `${t},${stock},${donationUnits},${donors}\r\n`;
+                });
+                
+                csvContent += "\r\n";
+                
+                // Add badge tiers
+                csvContent += "3. DONOR TIERS CLASSIFICATION\r\n";
+                csvContent += "Tier,Donors Count\r\n";
+                badgeLabels.forEach((label, index) => {
+                    csvContent += `${label},${badgeData[index]}\r\n`;
+                });
+                
+                // Download file
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", "Donora_Analytics_Export_@(filterMonth != null ? filterMonth.Value.ToString() : "All")_@(filterYear != null ? filterYear.Value.ToString() : "All").csv");
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+        });
+    </script>
+}

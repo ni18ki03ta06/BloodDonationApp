@@ -1,0 +1,155 @@
+@model IEnumerable<BloodDonationApp.Models.BloodCamp>
+@{
+    Layout = "_UserLayout";
+    ViewData["Title"] = "Blood Donation Camps";
+    var registeredCampIds = ViewBag.RegisteredCampIds as List<int> ?? new List<int>();
+    var userIdStr = HttpContextAccessor.HttpContext?.Session.GetString("UserId");
+    bool isLoggedIn = !string.IsNullOrEmpty(userIdStr);
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+    <h1 style="font-family: 'Times New Roman', serif;">Blood Donation Camps</h1>
+    @if (isLoggedIn)
+    {
+        <a asp-action="MyRegistrations" class="btn btn-outline-danger btn-sm">
+            <i class="bi bi-calendar-check me-1"></i> My Registrations
+        </a>
+    }
+</div>
+
+<p class="text-muted mb-4">
+    Participate in local blood camps and help save lives in your community. Registered donors can sign up for any of the scheduled drives below.
+</p>
+
+<div class="row">
+    @if (Model != null && Model.Any())
+    {
+        @foreach (var camp in Model)
+        {
+            var slotsRemaining = camp.MaxDonors - camp.RegisteredCount;
+            var isFull = slotsRemaining <= 0;
+            var isRegistered = registeredCampIds.Contains(camp.Id);
+
+            <div class="col-lg-6 col-md-12 mb-4">
+                <div class="card h-100 border-0 shadow-sm camp-card transition-all duration-300">
+                    <div class="card-body p-4 d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <span class="badge bg-gold-editorial text-uppercase tracking-wider px-3 py-2 font-monospace">
+                                @camp.City
+                            </span>
+                            @if (isRegistered)
+                            {
+                                <span class="badge bg-success py-2 px-3 text-uppercase">
+                                    <i class="bi bi-check-circle-fill me-1"></i> Registered
+                                </span>
+                            }
+                            else if (isFull)
+                            {
+                                <span class="badge bg-danger py-2 px-3 text-uppercase">Full</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-info py-2 px-3 text-uppercase text-dark text-white" style="color: white !important;">
+                                    @slotsRemaining Slots Left
+                                </span>
+                            }
+                        </div>
+
+                        <h3 class="card-title text-burgundy text-serif mb-2">@camp.CampName</h3>
+                        <p class="text-muted small mb-3">
+                            <i class="bi bi-building me-1"></i> Organized By: <strong>@camp.OrganizedBy</strong>
+                        </p>
+
+                        <div class="camp-details bg-light-editorial rounded p-3 mb-4 flex-grow-1">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-geo-alt-fill text-danger me-2"></i>
+                                <span class="small text-secondary">@camp.Location, @camp.City, @camp.State</span>
+                            </div>
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-calendar-event-fill text-danger me-2"></i>
+                                <span class="small text-secondary">@camp.ScheduledDate.ToString("dddd, MMMM dd, yyyy")</span>
+                            </div>
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-clock-fill text-danger me-2"></i>
+                                <span class="small text-secondary">@camp.ScheduledDate.ToString("hh:mm tt") onwards</span>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-telephone-fill text-danger me-2"></i>
+                                <span class="small text-secondary">@camp.ContactPhone (@camp.ContactEmail)</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">
+                            <div class="text-muted small">
+                                <i class="bi bi-people me-1"></i> <strong>@camp.RegisteredCount</strong> / @camp.MaxDonors Registered
+                            </div>
+                            
+                            @if (isRegistered)
+                            {
+                                <a asp-action="MyRegistrations" class="btn btn-sm btn-outline-success">
+                                    View Details
+                                </a>
+                            }
+                            else if (isFull)
+                            {
+                                <button class="btn btn-sm btn-secondary" disabled>Camp Full</button>
+                            }
+                            else if (isLoggedIn)
+                            {
+                                <form asp-action="Register" method="post" class="m-0">
+                                    <input type="hidden" name="campId" value="@camp.Id" />
+                                    <button type="submit" class="btn btn-sm btn-danger text-uppercase tracking-wider">
+                                        Register Now
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <a asp-controller="Account" asp-action="UserLogin" class="btn btn-sm btn-outline-danger text-uppercase">
+                                    Login to Register
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="col-12 text-center py-5">
+            <div class="text-muted fs-4 mb-3">⛺</div>
+            <p class="text-muted">No upcoming active blood donation camps scheduled at this time. Please check back later.</p>
+        </div>
+    }
+</div>
+
+<style>
+    .camp-card {
+        border-left: 5px solid #7D2B2B !important; /* Burgundy accent */
+        background-color: #ffffff;
+    }
+    
+    .camp-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important;
+    }
+    
+    .bg-light-editorial {
+        background-color: #FCFBF7;
+        border: 1px solid #F0EEE4;
+    }
+    
+    .bg-gold-editorial {
+        background-color: #B5894A;
+        color: white;
+    }
+
+    .text-burgundy {
+        color: #7D2B2B;
+    }
+    
+    .text-serif {
+        font-family: 'Times New Roman', serif;
+    }
+</style>

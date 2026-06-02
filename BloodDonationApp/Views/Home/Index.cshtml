@@ -1,0 +1,142 @@
+@inject BloodDonationApp.Data.ApplicationDbContext DbContext
+@using Microsoft.EntityFrameworkCore
+@using System.Linq
+@{
+    ViewData["Title"] = "Welcome to Donora";
+    var today = DateTime.Today;
+    var emergencyRequests = await DbContext.BloodRequests
+        .Where(r => r.Status == "Pending" && r.UrgencyLevel == BloodDonationApp.Models.UrgencyLevel.Critical && r.RequiredDate >= today)
+        .ToListAsync();
+}
+
+<div class="donora-hero-wrapper">
+    <div class="donora-hero row g-0">
+        <!-- LEFT HALF (50%): Deep red background -->
+        <div class="col-md-6 donora-hero-left d-flex align-items-center px-4 px-md-5 py-5 text-white">
+            <div class="hero-left-content">
+                <h1 class="donora-wordmark mb-3">DONORA</h1>
+                <p class="donora-tagline mb-5">
+                    A bespoke, luxury platform engineered to connect altruistic blood donors with critical healthcare needs. Bridging the gap, saving lives, preserving communities.
+                </p>
+                <div class="d-flex flex-wrap gap-3">
+                    <a asp-controller="Donor" asp-action="Register" class="btn btn-register btn-lg px-4 py-3">Register as Donor</a>
+                    <a asp-controller="Home" asp-action="About" class="btn btn-learn btn-lg px-4 py-3">Learn More</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- RIGHT HALF (50%): White/light grey background -->
+        <div class="col-md-6 donora-hero-right d-flex align-items-center justify-content-center px-4 py-5">
+            <div class="portal-cards-container d-flex flex-column gap-4">
+                <!-- Donor Portal Access -->
+                <div class="card portal-card p-4">
+                    <div class="card-body p-0 d-flex flex-column align-items-center text-center">
+                        <div class="portal-icon mb-3">
+                            <!-- Styled SVG Drop Icon -->
+                            <svg class="blood-svg" viewBox="0 0 24 24" width="60" height="60">
+                                <path d="M12 21.5c3.59 0 6.5-2.91 6.5-6.5 0-3.6-6.5-12.5-6.5-12.5S5.5 11.4 5.5 15c0 3.59 2.91 6.5 6.5 6.5z" fill="var(--donora-red)"/>
+                            </svg>
+                        </div>
+                        <h3 class="portal-title mb-2">Donor Portal</h3>
+                        <p class="portal-text mb-4 small">Update donation availability, view history, and edit your profile.</p>
+                        <a asp-controller="Account" asp-action="UserLogin" class="btn btn-portal btn-sm w-100 py-2">Enter Portal</a>
+                    </div>
+                </div>
+                
+                <!-- Admin Portal Access -->
+                <div class="card portal-card p-4">
+                    <div class="card-body p-0 d-flex flex-column align-items-center text-center">
+                        <div class="portal-icon mb-3">
+                            <!-- Styled Lock Icon in Red -->
+                            <svg class="lock-svg" viewBox="0 0 24 24" width="60" height="60" fill="none" stroke="var(--donora-red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                            </svg>
+                        </div>
+                        <h3 class="portal-title mb-2">Admin Portal</h3>
+                        <p class="portal-text mb-4 small">Manage requests, view system statistics, and review donor accounts.</p>
+                        <a asp-controller="Account" asp-action="AdminLogin" class="btn btn-portal btn-sm w-100 py-2">Enter Portal</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (emergencyRequests != null && emergencyRequests.Any())
+{
+    <div class="row mt-5 pt-5 border-top">
+        <div class="col-12 mb-4 text-center">
+            <h2 class="display-5 fw-bold text-danger mb-2" style="font-family: 'Playfair Display', serif; color: var(--donora-red) !important;">Emergency Requests</h2>
+            <p class="text-muted">Urgent critical blood donations requested by hospitals. Please help if you can.</p>
+        </div>
+        <div class="emergency-cards-row">
+            @foreach (var request in emergencyRequests)
+            {
+                var isCritical = request.UrgencyLevel == BloodDonationApp.Models.UrgencyLevel.Critical;
+                var isUrgent = request.UrgencyLevel == BloodDonationApp.Models.UrgencyLevel.Urgent;
+                var isNormal = !isCritical && !isUrgent;
+
+                var cardClass = isCritical ? "card-urgency-critical" : (isUrgent ? "card-urgency-urgent" : "card-urgency-normal");
+                var badgeText = isCritical ? "🔴 CRITICAL NEED" : (isUrgent ? "🟠 URGENT NEED" : "🟢 BLOOD REQUEST");
+                var headerClass = isCritical ? "pulse-ring bg-donora-red" : (isUrgent ? "pulse-ring-slow bg-orange" : "bg-standard-red");
+
+                <div class="emergency-card-col">
+                    <div class="card h-100 border-0 @cardClass">
+                        <!-- Card Header -->
+                        <div class="card-header-alert @headerClass px-4 py-3 d-flex align-items-center justify-content-between">
+                            <span class="fw-bold"><i class="bi bi-exclamation-circle-fill me-2"></i>@badgeText</span>
+                            <span class="blood-type-badge">@request.BloodType</span>
+                        </div>
+                        <!-- Card Body -->
+                        <div class="card-body p-4 d-flex flex-column">
+                            <h4 class="patient-name mb-3">@request.PatientName</h4>
+                            
+                            <div class="info-rows flex-grow-1">
+                                <p class="info-row mb-2">
+                                    <i class="bi bi-hospital me-2 info-icon"></i>
+                                    <strong>Hospital:</strong> @request.Hospital
+                                </p>
+                                <p class="info-row mb-2">
+                                    <i class="bi bi-geo-alt me-2 info-icon"></i>
+                                    <strong>Location:</strong> @request.City
+                                </p>
+                                <p class="info-row mb-2">
+                                    <i class="bi bi-calendar-event me-2 info-icon"></i>
+                                    <strong>Required By:</strong> @request.RequiredDate.ToString("MMMM dd, yyyy")
+                                </p>
+                                <p class="info-row mb-3">
+                                    <i class="bi bi-droplet-half me-2 info-icon"></i>
+                                    <strong>Units Needed:</strong> @request.Units Unit(s)
+                                </p>
+                            </div>
+                            
+                            <hr class="card-divider my-3" />
+                            
+                            <div class="mt-auto text-center">
+                                <a href="tel:@request.ContactNumber" class="btn btn-contact w-100 text-uppercase">
+                                    <i class="bi bi-telephone-fill me-2"></i>Contact: @request.ContactNumber
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<div class="row mt-5 pt-5 border-top">
+    <div class="col-md-4 text-center mb-4">
+        <h4 style="font-family: 'Times New Roman', serif;" class="mb-2">1. Register</h4>
+        <p class="text-muted small">Join Donora as a verified blood donor in under two minutes.</p>
+    </div>
+    <div class="col-md-4 text-center mb-4">
+        <h4 style="font-family: 'Times New Roman', serif;" class="mb-2">2. Match</h4>
+        <p class="text-muted small">Hospitals and patients search for matches based on blood type and city.</p>
+    </div>
+    <div class="col-md-4 text-center mb-4">
+        <h4 style="font-family: 'Times New Roman', serif;" class="mb-2">3. Save Lives</h4>
+        <p class="text-muted small">Deliver critical care where and when it's needed most.</p>
+    </div>
+</div>

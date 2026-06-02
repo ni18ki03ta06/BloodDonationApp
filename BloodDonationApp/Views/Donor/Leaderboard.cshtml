@@ -1,0 +1,147 @@
+@model IEnumerable<dynamic>
+@{
+    Layout = "_UserLayout";
+    ViewData["Title"] = "Gamification Leaderboard";
+    int currentDonorId = ViewBag.CurrentDonorId ?? 0;
+    int rank = 1;
+}
+
+<div class="animate-fade-in">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <div>
+            <h1 class="h2 mb-1">Leaderboard</h1>
+            <p class="text-muted small mb-0">Honoring the top donors of the Donora community</p>
+        </div>
+        <a asp-action="Dashboard" class="btn btn-secondary btn-sm">&larr; Back to Dashboard</a>
+    </div>
+
+    <!-- Leaderboard Card -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+        <div class="card-header bg-white border-0 pt-4 pb-0">
+            <h5 class="fw-bold mb-1 text-dark">
+                <i class="bi bi-trophy-fill text-warning me-2"></i>Top Contributors
+            </h5>
+        </div>
+        <div class="card-body pt-3">
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                        <tr class="text-uppercase font-monospace text-muted" style="font-size: 0.8rem;">
+                            <th class="ps-3" style="width: 80px;">Rank</th>
+                            <th>Donor</th>
+                            <th class="text-center" style="width: 100px;">Blood Type</th>
+                            <th class="text-center">Level</th>
+                            <th class="text-center">Donations</th>
+                            <th class="text-center">Badges</th>
+                            <th class="text-center">Streak</th>
+                            <th class="text-end pe-3">Lifetime Points</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var entry in Model)
+                        {
+                            bool isCurrentUser = entry.Id == currentDonorId;
+                            string rowClass = isCurrentUser ? "table-row-highlight" : "";
+                            
+                            <tr class="@rowClass">
+                                <td class="ps-3 fw-bold font-monospace">
+                                    @if (rank == 1)
+                                    {
+                                        <span class="badge bg-warning text-dark rounded-circle p-2 fs-6 shadow-sm" style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;" title="1st Place">🥇</span>
+                                    }
+                                    else if (rank == 2)
+                                    {
+                                        <span class="badge bg-secondary text-white rounded-circle p-2 fs-6 shadow-sm" style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;" title="2nd Place">🥈</span>
+                                    }
+                                    else if (rank == 3)
+                                    {
+                                        <span class="badge bg-danger bg-opacity-70 text-white rounded-circle p-2 fs-6 shadow-sm" style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;" title="3rd Place">🥉</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted ms-2">#@rank</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar rounded-circle bg-danger bg-opacity-10 text-danger fw-bold d-flex align-items-center justify-content-center me-3" style="width: 38px; height: 38px; font-size: 0.9rem;">
+                                            @entry.Name.Substring(0, Math.Min(2, entry.Name.Length)).ToUpper()
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-dark">
+                                                @entry.Name
+                                                @if (isCurrentUser)
+                                                {
+                                                    <span class="badge bg-danger rounded-pill px-2 py-1 ms-1 text-uppercase font-monospace" style="font-size: 0.6rem;">You</span>
+                                                }
+                                            </div>
+                                            <span class="text-muted small">@entry.LevelName</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-danger fs-6 px-3 py-1 font-monospace">@entry.BloodType</span>
+                                </td>
+                                <td class="text-center font-monospace">Lvl @entry.Level</td>
+                                <td class="text-center fw-bold text-dark font-monospace">@entry.TotalDonations</td>
+                                <td class="text-center font-monospace">
+                                    <span class="badge bg-light text-dark border rounded-pill px-2">@entry.BadgeCount Badges</span>
+                                </td>
+                                <td class="text-center">
+                                    @if (entry.DonationStreak > 1)
+                                    {
+                                        <span class="badge bg-warning bg-opacity-15 text-warning-emphasis rounded-pill px-2 py-1 font-monospace" title="Current Donation Streak">
+                                            🔥 @entry.DonationStreak Streak
+                                        </span>
+                                    }
+                                    else if (entry.DonationStreak == 1)
+                                    {
+                                        <span class="text-muted font-monospace" style="font-size: 0.85rem;">🔥 1</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small">-</span>
+                                    }
+                                </td>
+                                <td class="text-end pe-3 fw-bold text-danger font-monospace">@entry.LifetimePoints pts</td>
+                            </tr>
+                            rank++;
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .table-row-highlight {
+        background-color: rgba(192, 57, 43, 0.06) !important;
+        border-left: 4px solid #C0392B !important;
+        transition: all 0.3s ease;
+    }
+    
+    .table-row-highlight td {
+        background-color: transparent !important;
+    }
+
+    .table tr {
+        transition: background-color 0.2s ease;
+    }
+
+    .table tr:hover {
+        background-color: rgba(0,0,0,0.01);
+    }
+    
+    .avatar {
+        flex-shrink: 0;
+    }
+
+    [data-theme="dark"] .table-row-highlight {
+        background-color: rgba(192, 57, 43, 0.15) !important;
+        border-left: 4px solid #C0392B !important;
+    }
+    [data-theme="dark"] .table tr:hover {
+        background-color: rgba(255,255,255,0.02);
+    }
+</style>

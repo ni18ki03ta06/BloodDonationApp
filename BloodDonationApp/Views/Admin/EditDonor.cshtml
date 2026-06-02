@@ -1,0 +1,82 @@
+@model BloodDonationApp.Models.Donor
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Edit Donor Profile";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+    <h1 style="font-family: 'Times New Roman', serif;">Edit Donor Profile</h1>
+    <a asp-action="ManageDonors" class="btn btn-secondary btn-sm">&larr; Back to List</a>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm p-4">
+            <form asp-action="EditDonor" method="post">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                <input type="hidden" asp-for="Id" />
+                
+                <div class="form-group mb-3">
+                    <label asp-for="Name" class="control-label text-uppercase small fw-bold" style="color: #C0392B; letter-spacing: 1px;"></label>
+                    <input asp-for="Name" class="form-control" required />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+                
+                <div class="form-group mb-3">
+                    <label asp-for="BloodType" class="control-label text-uppercase small fw-bold" style="color: #C0392B; letter-spacing: 1px;">Blood Type</label>
+                    <select asp-for="BloodType" class="form-control" required>
+                        <option value="A+">A+</option>
+                        <option value="A-">A-</option>
+                        <option value="B+">B+</option>
+                        <option value="B-">B-</option>
+                        <option value="AB+">AB+</option>
+                        <option value="AB-">AB-</option>
+                        <option value="O+">O+</option>
+                        <option value="O-">O-</option>
+                    </select>
+                    <span asp-validation-for="BloodType" class="text-danger"></span>
+                </div>
+                
+                <div class="form-group mb-3">
+                    <label asp-for="Phone" class="control-label text-uppercase small fw-bold" style="color: #C0392B; letter-spacing: 1px;">Phone Number (Password)</label>
+                    <input asp-for="Phone" class="form-control" required />
+                    <span asp-validation-for="Phone" class="text-danger"></span>
+                </div>
+                
+                <div class="form-group mb-3">
+                    <label asp-for="Email" class="control-label text-uppercase small fw-bold" style="color: #C0392B; letter-spacing: 1px;"></label>
+                    <input asp-for="Email" class="form-control" type="email" required />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+                
+                <div class="form-group mb-3">
+                    <label asp-for="City" class="control-label text-uppercase small fw-bold" style="color: #C0392B; letter-spacing: 1px;"></label>
+                    <input asp-for="City" class="form-control" required />
+                    <span asp-validation-for="City" class="text-danger"></span>
+                </div>
+                
+                <div class="form-group mb-3">
+                    <label asp-for="LastDonationDate" class="control-label text-uppercase small fw-bold" style="color: #C0392B; letter-spacing: 1px;">Last Donation Date</label>
+                    <input asp-for="LastDonationDate" class="form-control" type="date" />
+                    <span asp-validation-for="LastDonationDate" class="text-danger"></span>
+                </div>
+                
+                <div class="form-check mb-4 mt-3">
+                    <input class="form-check-input" asp-for="IsAvailable" />
+                    <label class="form-check-label fw-bold text-uppercase small" asp-for="IsAvailable" style="color: #E67E22; letter-spacing: 1px;">
+                        Mark as Active & Available
+                    </label>
+                </div>
+                
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary w-100 py-2">Save Profile Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

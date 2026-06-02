@@ -1,0 +1,189 @@
+@model IEnumerable<BloodDonationApp.Models.Donor>
+@using BloodDonationApp.Helpers
+@{
+    Layout = "_UserLayout";
+    ViewData["Title"] = "Search Donors";
+
+    // Helper for badge icons
+    string GetBadgeIcon(string badgeName) => badgeName switch
+    {
+        "New Donor" => "bi-heart-fill text-muted",
+        "First Drop" => "bi-droplet-fill text-primary",
+        "Regular Hero" => "bi-award-fill text-success",
+        "Blood Champion" => "bi-trophy-fill text-warning",
+        "Lifesaver Legend" => "bi-crown-fill text-danger",
+        _ => "bi-star-fill text-muted"
+    };
+
+    // Preselected values
+    var selectedBloodType = ViewBag.BloodType as string ?? "";
+    var selectedCity = ViewBag.City as string ?? "";
+    var selectedState = ViewBag.State as string ?? "";
+    var selectedMinAge = ViewBag.MinAge as int?;
+    var selectedMaxAge = ViewBag.MaxAge as int?;
+    var selectedIsVerified = ViewBag.IsVerified as bool? ?? false;
+
+    // List of Indian States
+    var statesList = new List<string>
+    {
+        "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", 
+        "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", 
+        "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", 
+        "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", 
+        "Uttar Pradesh", "Uttarakhand", "West Bengal", "Delhi", "Jammu & Kashmir"
+    };
+}
+
+<div class="animate-fade-in">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <h1 class="h2 mb-0">Search Blood Donors</h1>
+        <span class="badge bg-danger py-2 px-3 text-uppercase font-monospace">Donor Directory</span>
+    </div>
+
+    <div class="row g-4">
+        <!-- Sidebar Filters -->
+        <div class="col-lg-3 col-md-4">
+            <div class="card border-0 shadow-sm p-4">
+                <h4 class="h5 mb-3 text-danger border-bottom pb-2 font-serif">
+                    <i class="bi bi-funnel-fill me-2 text-warning"></i>Filters
+                </h4>
+                <form asp-action="Search" method="get">
+                    <!-- Blood Type Filter -->
+                    <div class="mb-3">
+                        <label class="form-label text-uppercase small fw-bold text-muted">Blood Type</label>
+                        <select name="bloodType" class="form-select">
+                            <option value="Any" selected="@(selectedBloodType == "Any" || string.IsNullOrEmpty(selectedBloodType) ? "selected" : null)">-- Any --</option>
+                            @foreach (var type in new[] { "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-" })
+                            {
+                                <option value="@type" selected="@(selectedBloodType == type ? "selected" : null)">@type</option>
+                            }
+                        </select>
+                    </div>
+
+                    <!-- City Filter -->
+                    <div class="mb-3">
+                        <label class="form-label text-uppercase small fw-bold text-muted">City</label>
+                        <input type="text" name="city" class="form-control" placeholder="e.g. Mumbai" value="@selectedCity" />
+                    </div>
+
+                    <!-- State Filter -->
+                    <div class="mb-3">
+                        <label class="form-label text-uppercase small fw-bold text-muted">State</label>
+                        <select name="state" class="form-select">
+                            <option value="Any" selected="@(selectedState == "Any" || string.IsNullOrEmpty(selectedState) ? "selected" : null)">-- Any --</option>
+                            @foreach (var state in statesList)
+                            {
+                                <option value="@state" selected="@(selectedState == state ? "selected" : null)">@state</option>
+                            }
+                        </select>
+                    </div>
+
+                    <!-- Age Range Filter -->
+                    <div class="mb-3">
+                        <label class="form-label text-uppercase small fw-bold text-muted">Age Range</label>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <input type="number" name="minAge" class="form-control text-center" min="18" max="65" placeholder="Min" value="@selectedMinAge" />
+                            </div>
+                            <div class="col-6">
+                                <input type="number" name="maxAge" class="form-control text-center" min="18" max="65" placeholder="Max" value="@selectedMaxAge" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Verified Only Checkbox -->
+                    <div class="form-check mb-4">
+                        <input class="form-check-input text-danger" type="checkbox" name="isVerified" value="true" id="isVerifiedCheck" @(selectedIsVerified ? "checked" : "") />
+                        <label class="form-check-label small fw-bold text-muted" for="isVerifiedCheck">
+                            Verified Donors Only
+                        </label>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <button type="submit" class="btn btn-primary w-100 py-2 mb-2 text-uppercase">Apply Filters</button>
+                    <a asp-action="Search" class="btn btn-outline-dark w-100 py-2 text-uppercase">Clear Filters</a>
+                </form>
+            </div>
+        </div>
+
+        <!-- Results Panel -->
+        <div class="col-lg-9 col-md-8">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="text-muted fw-bold">
+                    @Model.Count() @(Model.Count() == 1 ? "donor" : "donors") found
+                </span>
+            </div>
+
+            @if (Model.Any())
+            {
+                <div class="row g-3">
+                    @foreach (var item in Model)
+                    {
+                        var badge = DonorBadgeHelper.GetBadge(item.TotalDonations);
+                        <div class="col-xl-4 col-md-6">
+                            <div class="card h-100 donor-card border-0 shadow-sm">
+                                <div class="card-body d-flex flex-column p-4">
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <div>
+                                            <h5 class="h6 mb-1 text-danger font-serif">@item.Name</h5>
+                                            <p class="text-muted mb-0 small">
+                                                <i class="bi bi-geo-alt-fill text-warning me-1"></i>@item.City, @item.State
+                                            </p>
+                                        </div>
+                                        <span class="badge bg-danger fs-6 px-3 py-2">@item.BloodType</span>
+                                    </div>
+
+                                    <div class="my-3 border-top border-bottom py-3">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <i class="bi @GetBadgeIcon(badge.Name) fs-5 me-2"></i>
+                                            <div>
+                                                <small class="text-muted d-block text-uppercase lh-1" style="font-size: 0.7rem;">Rank Badge</small>
+                                                <strong class="text-dark small">@badge.Name</strong>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-award-fill text-warning fs-5 me-2"></i>
+                                            <div>
+                                                <small class="text-muted d-block text-uppercase lh-1" style="font-size: 0.7rem;">Total Donations</small>
+                                                <strong class="text-dark small">@item.TotalDonations @(item.TotalDonations == 1 ? "donation" : "donations")</strong>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-auto">
+                                        <div class="mb-3 d-flex align-items-center justify-content-between">
+                                            <span class="small text-muted fw-bold">CONTACT INFO:</span>
+                                            @if (item.IsVerified)
+                                            {
+                                                <code class="fs-6 text-dark font-monospace bg-light px-2 py-1 rounded">@item.Phone</code>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted small">
+                                                    <i class="bi bi-lock-fill text-danger me-1"></i>Hidden (Unverified)
+                                                </span>
+                                            }
+                                        </div>
+
+                                        <a asp-controller="BloodRequest" asp-action="Create" asp-route-bloodType="@item.BloodType" class="btn btn-sm btn-primary w-100 py-2">
+                                            <i class="bi bi-chat-plus-fill me-1"></i>Request This Donor
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="empty-state text-center py-5 border rounded" style="background-color: var(--primary-light); border-color: var(--primary-border) !important;">
+                    <i class="bi bi-search text-warning" style="font-size: 3rem;"></i>
+                    <h4 class="mt-3 text-danger font-serif">No donors found</h4>
+                    <p class="text-muted mb-4">Try expanding your search criteria or resetting the filters.</p>
+                    <a asp-action="Search" class="btn btn-primary px-4 text-uppercase">Clear Filters</a>
+                </div>
+            }
+        </div>
+    </div>
+</div>

@@ -1,0 +1,125 @@
+@model IEnumerable<BloodDonationApp.Models.CampRegistration>
+@{
+    Layout = "_UserLayout";
+    ViewData["Title"] = "My Camp Registrations";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+    <h1 style="font-family: 'Times New Roman', serif;" class="text-burgundy">My Camp Registrations</h1>
+    <a asp-action="Index" class="btn btn-outline-danger btn-sm">
+        <i class="bi bi-arrow-left me-1"></i> Back to Camps
+    </a>
+</div>
+
+<p class="text-muted mb-4">
+    Track your registered blood donation drives, check status, or cancel a registration if you can no longer attend.
+</p>
+
+@if (Model != null && Model.Any())
+{
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light-editorial text-uppercase font-monospace text-secondary small">
+                        <tr>
+                            <th class="ps-4 py-3">Camp Details</th>
+                            <th class="py-3">Location</th>
+                            <th class="py-3">Scheduled Date</th>
+                            <th class="py-3">Registered At</th>
+                            <th class="py-3">Status</th>
+                            <th class="py-3 text-end pe-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var reg in Model)
+                        {
+                            <tr>
+                                <td class="ps-4 py-3">
+                                    <div class="fw-bold text-burgundy fs-6">@reg.Camp?.CampName</div>
+                                    <div class="text-muted small">Organized by: @reg.Camp?.OrganizedBy</div>
+                                </td>
+                                <td class="py-3">
+                                    <div class="small">@reg.Camp?.Location</div>
+                                    <div class="text-muted small">@reg.Camp?.City, @reg.Camp?.State</div>
+                                </td>
+                                <td class="py-3">
+                                    <div class="fw-semibold">@reg.Camp?.ScheduledDate.ToString("MMM dd, yyyy")</div>
+                                    <div class="text-muted small">@reg.Camp?.ScheduledDate.ToString("hh:mm tt")</div>
+                                </td>
+                                <td class="py-3 text-muted small">
+                                    @reg.RegisteredAt.ToString("MMM dd, yyyy hh:mm tt")
+                                </td>
+                                <td class="py-3">
+                                    @if (reg.Status == "Registered")
+                                    {
+                                        <span class="badge bg-success rounded-pill px-3 py-2 text-uppercase tracking-wider font-monospace">
+                                            Registered
+                                        </span>
+                                    }
+                                    else if (reg.Status == "Cancelled")
+                                    {
+                                        <span class="badge bg-secondary rounded-pill px-3 py-2 text-uppercase tracking-wider font-monospace">
+                                            Cancelled
+                                        </span>
+                                    }
+                                    else if (reg.Status == "Attended")
+                                    {
+                                        <span class="badge bg-primary rounded-pill px-3 py-2 text-uppercase tracking-wider font-monospace">
+                                            Attended
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-dark rounded-pill px-3 py-2 text-uppercase tracking-wider font-monospace">
+                                            @reg.Status
+                                        </span>
+                                    }
+                                </td>
+                                <td class="py-3 text-end pe-4">
+                                    @if (reg.Status == "Registered")
+                                    {
+                                        <form asp-action="Cancel" method="post" class="m-0 d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="campId" value="@reg.CampId" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to cancel your registration for @reg.Camp?.CampName?');">
+                                                <i class="bi bi-x-circle me-1"></i> Cancel
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small">No actions available</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="text-center py-5 bg-white rounded shadow-sm border-0">
+        <div class="text-muted fs-1 mb-3">
+            <i class="bi bi-calendar-x"></i>
+        </div>
+        <h4 class="text-burgundy mb-2">No Registrations Yet</h4>
+        <p class="text-muted mb-4">You have not registered for any upcoming blood donation camps.</p>
+        <a asp-action="Index" class="btn btn-danger text-uppercase tracking-wider">
+            Browse Blood Camps
+        </a>
+    </div>
+}
+
+<style>
+    .bg-light-editorial {
+        background-color: #FCFBF7;
+        border-bottom: 1px solid #F0EEE4;
+    }
+    .text-burgundy {
+        color: #7D2B2B;
+    }
+</style>

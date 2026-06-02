@@ -1,0 +1,140 @@
+@inject BloodDonationApp.Data.ApplicationDbContext DbContext
+@{
+    var userName = HttpContextAccessor.HttpContext?.Session.GetString("UserName") ?? "Donor";
+    var userIdStr = HttpContextAccessor.HttpContext?.Session.GetString("UserId");
+    var unreadNotificationsCount = 0;
+    if (!string.IsNullOrEmpty(userIdStr) && int.TryParse(userIdStr, out int userId))
+    {
+        unreadNotificationsCount = DbContext.Notifications.Count(n => n.DonorId == userId && !n.IsRead);
+    }
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Donora Donor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <script>
+        (function () {
+            const theme = localStorage.getItem("theme") || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+            document.documentElement.setAttribute("data-theme", theme);
+        })();
+    </script>
+</head>
+<body data-user-id="@userIdStr" data-user-role="Donor">
+    <div class="d-flex" id="wrapper">
+        <!-- Sidebar -->
+        <div id="sidebar-wrapper">
+            <div class="sidebar-heading text-center py-4">
+                <h3 class="mb-0 text-uppercase d-flex align-items-center justify-content-center gap-2" style="letter-spacing: 1px;">
+                    <i class="bi bi-heart-pulse-fill text-danger"></i> Donora
+                </h3>
+                <small class="text-muted text-uppercase">Donor Portal</small>
+            </div>
+            <div class="list-group list-group-flush sidebar-nav">
+                <a asp-controller="Donor" asp-action="Dashboard" class="list-group-item list-group-item-action text-white">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+                <a asp-controller="Donor" asp-action="Notifications" class="list-group-item list-group-item-action text-white d-flex justify-content-between align-items-center" id="navNotifications">
+                    <span class="d-flex align-items-center gap-2">
+                        <i class="bi bi-bell-fill"></i> Notifications
+                    </span>
+                    <span class="badge bg-gold text-dark rounded-pill @(unreadNotificationsCount == 0 ? "d-none" : "")" id="badgeUnreadNotifications" style="background-color: var(--warning) !important; color: white !important;">@unreadNotificationsCount</span>
+                </a>
+                <a asp-controller="Donor" asp-action="Profile" class="list-group-item list-group-item-action text-white">
+                    <i class="bi bi-person-circle"></i> My Profile
+                </a>
+                <a asp-controller="Donor" asp-action="Donate" class="list-group-item list-group-item-action text-white">
+                    <i class="bi bi-droplet-fill text-danger"></i> Donate Blood
+                </a>
+                <a asp-controller="Donor" asp-action="Appointments" class="list-group-item list-group-item-action text-white">
+                    <i class="bi bi-calendar2-check-fill"></i> Appointments
+                </a>
+                <a asp-controller="BloodRequest" asp-action="Create" class="list-group-item list-group-item-action text-white">
+                    <i class="bi bi-heart-fill text-danger"></i> Request Blood
+                </a>
+                <a asp-controller="Donor" asp-action="Search" class="list-group-item list-group-item-action text-white">
+                    <i class="bi bi-search"></i> Search Donor
+                </a>
+                <a asp-controller="Map" asp-action="Finder" class="list-group-item list-group-item-action text-white">
+                    <i class="bi bi-geo-alt-fill"></i> Nearby Finder (Map)
+                </a>
+                <a asp-controller="Camp" asp-action="Index" class="list-group-item list-group-item-action text-white">
+                    <i class="bi bi-hospital-fill"></i> Blood Camps
+                </a>
+                <a asp-controller="Donor" asp-action="History" class="list-group-item list-group-item-action text-white">
+                    <i class="bi bi-clock-history"></i> Donation History
+                </a>
+                <a asp-controller="Donor" asp-action="DigitalCard" class="list-group-item list-group-item-action text-white">
+                    <i class="bi bi-person-vcard-fill"></i> Digital ID Card
+                </a>
+                <a asp-controller="Donor" asp-action="MyCard" class="list-group-item list-group-item-action text-white">
+                    <i class="bi bi-qr-code-scan text-danger"></i> My QR Card (PNG)
+                </a>
+                <a asp-controller="Donor" asp-action="Leaderboard" class="list-group-item list-group-item-action text-white">
+                    <i class="bi bi-bar-chart-line-fill text-warning"></i> Leaderboard
+                </a>
+                <a asp-controller="Donor" asp-action="Gamification" class="list-group-item list-group-item-action text-white">
+                    <i class="bi bi-trophy-fill text-warning"></i> Achievements & Rewards
+                </a>
+                <a asp-controller="Account" asp-action="Logout" class="list-group-item list-group-item-action text-white mt-auto bg-dark-danger">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </a>
+            </div>
+        </div>
+        <!-- Page Content -->
+        <div id="page-content-wrapper" class="w-100">
+            <nav class="navbar navbar-expand-lg border-bottom py-3">
+                <div class="container-fluid px-4">
+                    <button class="btn btn-secondary btn-sm me-3" id="sidebarToggle" type="button" aria-label="Toggle Sidebar">
+                        <i class="bi bi-list"></i>
+                    </button>
+                    <span class="navbar-text">
+                        Welcome, <strong>@userName</strong> (Donor)
+                    </span>
+                    <div class="ms-auto d-flex align-items-center">
+                        <button class="theme-toggle-btn me-3" type="button" aria-label="Toggle dark mode">
+                            <i class="bi bi-moon-fill"></i>
+                        </button>
+                        <a asp-controller="Donor" asp-action="Notifications" class="me-3 position-relative text-decoration-none" id="bellNotificationLink" style="color: var(--text-secondary);">
+                            <i class="bi bi-bell-fill fs-5"></i>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger @(unreadNotificationsCount == 0 ? "d-none" : "")" style="font-size: 0.65rem;" id="badgeUnreadNotificationsBell">
+                                @unreadNotificationsCount
+                            </span>
+                        </a>
+                        <a id="donor-logout-btn" asp-controller="Account" asp-action="Logout" class="btn btn-outline-light btn-sm text-uppercase">Logout</a>
+                    </div>
+                </div>
+            </nav>
+            @await Html.PartialAsync("_EmergencyAlert")
+            <div class="container-fluid p-4">
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+                        @TempData["SuccessMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+                        @TempData["ErrorMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+                @RenderBody()
+            </div>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

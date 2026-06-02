@@ -1,0 +1,557 @@
+@model BloodDonationApp.Services.BloodAnalyticsViewModel
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "ML.NET Blood Demand Analytics";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 style="font-family: 'Times New Roman', serif;" class="mb-0">Demand Analytics & Forecasting</h1>
+    <span class="badge bg-danger py-2 px-3 text-uppercase font-monospace shadow-sm" style="font-size: 0.8rem;">
+        <i class="bi bi-cpu-fill me-1"></i> ML.NET Active Predictor
+    </span>
+</div>
+
+<p class="text-muted mb-4">
+    Real-time intelligence engine using historical blood request patterns to predict future weekly demand, identify potential stock shortages, and rank blood group urgency.
+</p>
+
+<!-- Stats Row -->
+<div class="row mb-5">
+    <!-- Total Requests -->
+    <div class="col-md-3 mb-3">
+        <div class="card bg-white border-0 shadow-sm text-center p-3 h-100">
+            <h6 class="text-uppercase small fw-bold text-muted mb-2">Historical Requests</h6>
+            <h2 class="text-dark mb-0 fw-bold" style="font-family: 'Times New Roman', serif;">@Model.TotalHistoricalRequests</h2>
+            <small class="text-muted mt-2">Analyzed Request Records</small>
+        </div>
+    </div>
+    <!-- Total Units -->
+    <div class="col-md-3 mb-3">
+        <div class="card bg-white border-0 shadow-sm text-center p-3 h-100">
+            <h6 class="text-uppercase small fw-bold text-muted mb-2">Total Units Requested</h6>
+            <h2 class="text-danger mb-0 fw-bold" style="font-family: 'Times New Roman', serif;">@Model.TotalHistoricalUnits</h2>
+            <small class="text-muted mt-2">Historical Volume</small>
+        </div>
+    </div>
+    <!-- Next Week Forecast -->
+    <div class="col-md-3 mb-3">
+        <div class="card bg-white border-0 shadow-sm text-center p-3 h-100" style="background: linear-gradient(135deg, #FFFDF9 0%, #FFF8EE 100%); border: 1px solid #F5ECD7 !important;">
+            <h6 class="text-uppercase small fw-bold text-muted mb-2">Next Week Forecast</h6>
+            <h2 class="text-gold mb-0 fw-bold" style="font-family: 'Times New Roman', serif;">@Model.NextWeekPredictedTotalUnits <span class="fs-6 text-muted">units</span></h2>
+            <small class="text-muted mt-2">Predicted Aggregated Demand</small>
+        </div>
+    </div>
+    <!-- Stock Health Index -->
+    <div class="col-md-3 mb-3">
+        <div class="card bg-white border-0 shadow-sm text-center p-3 h-100">
+            <h6 class="text-uppercase small fw-bold text-muted mb-2">Stock Health Index</h6>
+            @{
+                var healthColor = Model.StockHealthIndex >= 70 ? "text-success" : (Model.StockHealthIndex >= 40 ? "text-warning" : "text-danger");
+            }
+            <h2 class="@healthColor mb-0 fw-bold" style="font-family: 'Times New Roman', serif;">@Model.StockHealthIndex%</h2>
+            <small class="text-muted mt-2">Optimal Stock Blood Groups</small>
+        </div>
+    </div>
+</div>
+
+<!-- Proactive Shortage Warnings Alert Section -->
+<div class="row mb-5">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm p-4" style="background-color: #FFFDF9; border: 1px solid #EBE4DE !important;">
+            <h4 style="font-family: 'Times New Roman', serif; color: #8A2525;" class="mb-3 border-bottom pb-2 fw-bold">
+                <i class="bi bi-exclamation-triangle-fill text-danger me-2"></i> Stock Shortage Risk Predictions (Next 4 Weeks)
+            </h4>
+            
+            @{
+                var activeWarnings = Model.ShortagePredictions.Where(s => s.StockStatus != "Optimal").ToList();
+            }
+
+            @if (!activeWarnings.Any())
+            {
+                <div class="alert alert-success border-0 py-3 text-center mb-0">
+                    <i class="bi bi-check-circle-fill me-2 fs-5"></i> <strong>Optimal Inventory Status!</strong> Current blood stocks are sufficient to meet predicted demand across all blood groups for the next 4 weeks.
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light text-uppercase font-monospace" style="font-size: 0.75rem;">
+                            <tr>
+                                <th>Blood Type</th>
+                                <th>Current Inventory</th>
+                                <th>Predicted Weekly Demand</th>
+                                <th>Predicted 4-Week Demand</th>
+                                <th>Recommended Stock Level</th>
+                                <th>Prediction Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var forecast in Model.ShortagePredictions)
+                            {
+                                var badgeClass = forecast.StockStatus switch
+                                {
+                                    "Critical Shortage Warning" => "bg-danger",
+                                    "Low Stock Alert" => "bg-warning text-dark",
+                                    _ => "bg-success"
+                                };
+
+                                <tr>
+                                    <td><strong class="fs-5 text-danger">@forecast.BloodType</strong></td>
+                                    <td><strong>@forecast.CurrentStock</strong> units</td>
+                                    <td>@forecast.Predicted1WeekDemand units</td>
+                                    <td>@forecast.Predicted4WeekDemand units</td>
+                                    <td><strong>@forecast.RecommendedStockLevel</strong> units</td>
+                                    <td>
+                                        <span class="badge @badgeClass py-2 px-3 text-uppercase font-monospace">@forecast.StockStatus</span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Primary Analytics Graphs Row -->
+<div class="row mb-5">
+    <!-- Current Stock vs Next Week Predictor -->
+    <div class="col-lg-6 mb-4">
+        <div class="card border-0 shadow-sm p-4 h-100">
+            <h5 style="font-family: 'Times New Roman', serif;" class="mb-3 text-dark border-bottom pb-2 text-center fw-bold">Inventory vs. Next Week Predicted Demand</h5>
+            <div style="height: 300px; position: relative;">
+                <canvas id="stockVsDemandChart"></canvas>
+            </div>
+            <p class="text-muted small text-center mt-3 mb-0">
+                Weekly demand forecast computed using Poisson regression against historical seasonality trends.
+            </p>
+        </div>
+    </div>
+
+    <!-- Recommended Stock Level Graph -->
+    <div class="col-lg-6 mb-4">
+        <div class="card border-0 shadow-sm p-4 h-100">
+            <h5 style="font-family: 'Times New Roman', serif;" class="mb-3 text-dark border-bottom pb-2 text-center fw-bold">Actual Stock vs. Recommended Stock Level</h5>
+            <div style="height: 300px; position: relative;">
+                <canvas id="recommendedStockChart"></canvas>
+            </div>
+            <p class="text-muted small text-center mt-3 mb-0">
+                Recommended stock levels represent predicted 4-week demand plus a safety margin of 5 units.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Secondary Trends & Distribution Row -->
+<div class="row mb-5">
+    <!-- Historical Requests Volume Line Chart -->
+    <div class="col-lg-8 mb-4">
+        <div class="card border-0 shadow-sm p-4 h-100">
+            <h5 style="font-family: 'Times New Roman', serif;" class="mb-3 text-dark border-bottom pb-2 text-center fw-bold">Monthly Demand Volume (Last 6 Months)</h5>
+            <div style="height: 280px; position: relative;">
+                <canvas id="monthlyTrendsChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Blood Group Proportion Pie/Doughnut Chart -->
+    <div class="col-lg-4 mb-4">
+        <div class="card border-0 shadow-sm p-4 h-100">
+            <h5 style="font-family: 'Times New Roman', serif;" class="mb-3 text-dark border-bottom pb-2 text-center fw-bold">Blood Group Share of Historical Demand</h5>
+            <div style="height: 280px; position: relative;">
+                <canvas id="proportionsChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Data Rankings and Insights Row -->
+<div class="row mb-4">
+    <!-- High-Demand Blood Groups (ML Ordered) -->
+    <div class="col-lg-6 mb-4">
+        <div class="card border-0 shadow-sm p-4 h-100">
+            <h5 style="font-family: 'Times New Roman', serif; color: #8A2525;" class="mb-3 border-bottom pb-2 fw-bold">
+                <i class="bi bi-graph-up-arrow me-2 text-danger"></i> Forecasted High-Demand Blood Groups
+            </h5>
+            <ul class="list-group list-group-flush">
+                @for (var index = 0; index < Model.HighDemandBloodGroups.Count; index++)
+                {
+                    var item = Model.HighDemandBloodGroups[index];
+                    var badgeColor = item.DemandLevel switch
+                    {
+                        "High" => "bg-danger",
+                        "Medium" => "bg-warning text-dark",
+                        _ => "bg-secondary"
+                    };
+                    <li class="list-group-item d-flex justify-content-between align-items-center py-3 bg-transparent">
+                        <div>
+                            <span class="fw-bold font-monospace text-muted me-2" style="font-size: 0.85rem;">#@(index + 1)</span>
+                            <span class="fs-5 fw-bold text-dark">@item.BloodType</span>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <span class="text-muted small me-3">Avg Forecast: <strong>@item.PredictedWeeklyDemand</strong> units/wk</span>
+                            <span class="badge @badgeColor px-3 py-2 text-uppercase">@item.DemandLevel</span>
+                        </div>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+
+    <!-- Monthly Stats Insight Records -->
+    <div class="col-lg-6 mb-4">
+        <div class="card border-0 shadow-sm p-4 h-100">
+            <h5 style="font-family: 'Times New Roman', serif;" class="mb-3 text-dark border-bottom pb-2 fw-bold">
+                <i class="bi bi-calendar3 me-2 text-primary"></i> Monthly Performance Insights
+            </h5>
+            <div class="table-responsive mt-2">
+                <table class="table table-sm table-hover mb-0">
+                    <thead class="table-light text-uppercase font-monospace" style="font-size: 0.7rem;">
+                        <tr>
+                            <th>Month</th>
+                            <th class="text-center">Requests Count</th>
+                            <th class="text-center">Total Units</th>
+                            <th class="text-center">Avg Request Size</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var insight in Model.MonthlyInsights)
+                        {
+                            <tr>
+                                <td><strong>@insight.MonthLabel</strong></td>
+                                <td class="text-center">@insight.RequestsCount requests</td>
+                                <td class="text-center"><span class="text-danger">@insight.TotalUnits</span> units</td>
+                                <td class="text-center">@insight.AverageUnits units</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-auto pt-3 border-top bg-light-editorial p-3 rounded">
+                <h6 class="fw-bold text-uppercase small text-muted mb-1">Prediction Quality & Accuracy Note</h6>
+                <p class="small text-muted mb-0">
+                    Model training utilizes seasonal patterns, week offsets, and categorical blood group encoding. Model accuracy is auto-tuned iteratively upon every database initialization using L-BFGS Poisson loss minimization optimization.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Platform Analytics Section (Task 2H Expansion) -->
+<div class="row mb-5">
+    <div class="col-12">
+        <h3 style="font-family: 'Times New Roman', serif;" class="mb-4 text-dark border-bottom pb-2 fw-bold">Platform Stats & Visualizations</h3>
+    </div>
+    
+    <!-- 1. Donations Over Time (Last 12 Months) -->
+    <div class="col-lg-6 mb-4">
+        <div class="card border-0 shadow-sm p-4 h-100">
+            <h5 style="font-family: 'Times New Roman', serif;" class="mb-3 text-dark border-bottom pb-2 text-center fw-bold">Donations Over Time (Last 12 Months)</h5>
+            <div style="height: 280px; position: relative;">
+                <canvas id="donationsOverTimeChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Blood Type Distribution of Donors -->
+    <div class="col-lg-6 mb-4">
+        <div class="card border-0 shadow-sm p-4 h-100">
+            <h5 style="font-family: 'Times New Roman', serif;" class="mb-3 text-dark border-bottom pb-2 text-center fw-bold">Donor Blood Type Distribution</h5>
+            <div style="height: 280px; position: relative;">
+                <canvas id="donorDistributionChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Request Fulfillment Rate -->
+    <div class="col-lg-6 mb-4">
+        <div class="card border-0 shadow-sm p-4 h-100">
+            <h5 style="font-family: 'Times New Roman', serif;" class="mb-3 text-dark border-bottom pb-2 text-center fw-bold">Request Fulfillment Rate</h5>
+            <div style="height: 280px; position: relative;">
+                <canvas id="fulfillmentRateChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Active vs Busy Donors -->
+    <div class="col-lg-6 mb-4">
+        <div class="card border-0 shadow-sm p-4 h-100">
+            <h5 style="font-family: 'Times New Roman', serif;" class="mb-3 text-dark border-bottom pb-2 text-center fw-bold">Donor Availability Status</h5>
+            <div style="height: 280px; position: relative;">
+                <canvas id="donorAvailabilityChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            const fontSerif = 'Georgia, serif';
+
+            // Gather models data
+            const bloodTypes = @Html.Raw(Json.Serialize(Model.ShortagePredictions.Select(s => s.BloodType)));
+            const currentStocks = @Html.Raw(Json.Serialize(Model.ShortagePredictions.Select(s => s.CurrentStock)));
+            const predicted1WeekDemands = @Html.Raw(Json.Serialize(Model.ShortagePredictions.Select(s => s.Predicted1WeekDemand)));
+            const predicted4WeekDemands = @Html.Raw(Json.Serialize(Model.ShortagePredictions.Select(s => s.Predicted4WeekDemand)));
+            const recommendedStocks = @Html.Raw(Json.Serialize(Model.ShortagePredictions.Select(s => s.RecommendedStockLevel)));
+
+            // 1. Current Stock vs Next Week Predicted Demand (Double Bar Chart)
+            const ctx1 = document.getElementById('stockVsDemandChart').getContext('2d');
+            new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: bloodTypes,
+                    datasets: [
+                        {
+                            label: 'Current Stock',
+                            data: currentStocks,
+                            backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                            borderColor: 'rgb(54, 162, 235)',
+                            borderWidth: 1.5
+                        },
+                        {
+                            label: 'Next Week Predicted Demand',
+                            data: predicted1WeekDemands,
+                            backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                            borderColor: 'rgb(255, 99, 132)',
+                            borderWidth: 1.5
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { font: { family: fontSerif } }
+                        },
+                        x: {
+                            ticks: { font: { family: fontSerif } }
+                        }
+                    }
+                }
+            });
+
+            // 2. Actual Stock vs Recommended Stock Level (Safety Buffer Chart)
+            const ctx2 = document.getElementById('recommendedStockChart').getContext('2d');
+            new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: bloodTypes,
+                    datasets: [
+                        {
+                            label: 'Current Stock',
+                            data: currentStocks,
+                            backgroundColor: 'rgba(40, 167, 69, 0.7)',
+                            borderColor: 'rgb(40, 167, 69)',
+                            borderWidth: 1.5
+                        },
+                        {
+                            label: 'Recommended Stock',
+                            data: recommendedStocks,
+                            backgroundColor: 'rgba(181, 137, 74, 0.7)',
+                            borderColor: 'rgb(181, 137, 74)',
+                            borderWidth: 1.5
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { font: { family: fontSerif } }
+                        },
+                        x: {
+                            ticks: { font: { family: fontSerif } }
+                        }
+                    }
+                }
+            });
+
+            // 3. Historical Monthly Volume trends (Line Chart)
+            const monthlyLabels = @Html.Raw(Json.Serialize(Model.MonthlyLabels));
+            const monthlyUnits = @Html.Raw(Json.Serialize(Model.MonthlyUnits));
+
+            const ctx3 = document.getElementById('monthlyTrendsChart').getContext('2d');
+            new Chart(ctx3, {
+                type: 'line',
+                data: {
+                    labels: monthlyLabels,
+                    datasets: [{
+                        label: 'Units Requested',
+                        data: monthlyUnits,
+                        borderColor: '#8A2525',
+                        backgroundColor: 'rgba(138, 37, 37, 0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        borderWidth: 2,
+                        pointBackgroundColor: '#8A2525'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { font: { family: fontSerif } }
+                        },
+                        x: {
+                            ticks: { font: { family: fontSerif } }
+                        }
+                    }
+                }
+            });
+
+            // 4. Proportions Chart (Doughnut Chart)
+            const distributionLabels = @Html.Raw(Json.Serialize(Model.BloodGroupDistribution.Keys));
+            const distributionData = @Html.Raw(Json.Serialize(Model.BloodGroupDistribution.Values));
+
+            const ctx4 = document.getElementById('proportionsChart').getContext('2d');
+            new Chart(ctx4, {
+                type: 'doughnut',
+                data: {
+                    labels: distributionLabels,
+                    datasets: [{
+                        data: distributionData,
+                        backgroundColor: [
+                            '#8A2525', '#C82333', '#17A2B8', '#20C997',
+                            '#FFC107', '#FD7E14', '#007BFF', '#6C757D'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                font: {
+                                    family: fontSerif,
+                                    size: 11
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 5. Donations Over Time (Last 12 Months)
+            const donationsLabels = @Html.Raw(Json.Serialize(Model.DonationsLabels));
+            const donationsUnits = @Html.Raw(Json.Serialize(Model.DonationsUnits));
+            const ctx5 = document.getElementById('donationsOverTimeChart').getContext('2d');
+            new Chart(ctx5, {
+                type: 'line',
+                data: {
+                    labels: donationsLabels,
+                    datasets: [{
+                        label: 'Donations Completed',
+                        data: donationsUnits,
+                        borderColor: '#2ECC71',
+                        backgroundColor: 'rgba(46, 204, 113, 0.05)',
+                        fill: true,
+                        tension: 0.3,
+                        borderWidth: 2,
+                        pointBackgroundColor: '#2ECC71'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, ticks: { precision: 0 } }
+                    }
+                }
+            });
+
+            // 6. Blood Type Distribution of Donors
+            const donorDistLabels = @Html.Raw(Json.Serialize(Model.DonorBloodGroupDistribution.Keys));
+            const donorDistData = @Html.Raw(Json.Serialize(Model.DonorBloodGroupDistribution.Values));
+            const ctx6 = document.getElementById('donorDistributionChart').getContext('2d');
+            new Chart(ctx6, {
+                type: 'doughnut',
+                data: {
+                    labels: donorDistLabels,
+                    datasets: [{
+                        data: donorDistData,
+                        backgroundColor: [
+                            '#1ABC9C', '#2ECC71', '#3498DB', '#9B59B6',
+                            '#F1C40F', '#E67E22', '#E74C3C', '#95A5A6'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right' }
+                    }
+                }
+            });
+
+            // 7. Request Fulfillment Rate
+            const fulfillmentLabels = @Html.Raw(Json.Serialize(Model.RequestFulfillmentStats.Keys));
+            const fulfillmentData = @Html.Raw(Json.Serialize(Model.RequestFulfillmentStats.Values));
+            const ctx7 = document.getElementById('fulfillmentRateChart').getContext('2d');
+            new Chart(ctx7, {
+                type: 'bar',
+                data: {
+                    labels: fulfillmentLabels,
+                    datasets: [{
+                        label: 'Requests',
+                        data: fulfillmentData,
+                        backgroundColor: [
+                            'rgba(46, 204, 113, 0.7)',
+                            'rgba(241, 196, 15, 0.7)',
+                            'rgba(149, 165, 166, 0.7)'
+                        ],
+                        borderColor: [
+                            '#2ECC71',
+                            '#F1C40F',
+                            '#95A5A6'
+                        ],
+                        borderWidth: 1.5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, ticks: { precision: 0 } }
+                    }
+                }
+            });
+
+            // 8. Active vs Busy Donors
+            const ctx8 = document.getElementById('donorAvailabilityChart').getContext('2d');
+            new Chart(ctx8, {
+                type: 'pie',
+                data: {
+                    labels: ['Available (Active)', 'Unavailable (Busy)'],
+                    datasets: [{
+                        data: [@Model.ActiveDonorsCount, @Model.BusyDonorsCount],
+                        backgroundColor: ['#2ECC71', '#E74C3C'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        });
+    </script>
+}

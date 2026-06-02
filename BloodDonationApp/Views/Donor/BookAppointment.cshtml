@@ -1,0 +1,154 @@
+@model BloodDonationApp.Models.Appointment
+@{
+    Layout = "_UserLayout";
+    ViewData["Title"] = "Book Donation Appointment";
+    var targetDate = (DateTime)ViewBag.TargetDate;
+    var bookedSlots = ViewBag.BookedSlots as List<string> ?? new List<string>();
+    var allSlots = ViewBag.AllSlots as List<string> ?? new List<string>();
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="text-center mb-4">
+                <h2 class="display-6 fw-bold" style="font-family: 'Times New Roman', Georgia, serif; color: #3D1212;">
+                    Book Blood Donation Appointment
+                </h2>
+                <p class="text-muted">Select a date and available hourly time slot to request an appointment</p>
+            </div>
+
+            <div class="card border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+                <div class="bg-dark text-white p-4 d-flex align-items-center">
+                    <i class="bi bi-calendar-plus text-gold fs-3 me-3"></i>
+                    <div>
+                        <h5 class="m-0 font-monospace text-uppercase" style="letter-spacing: 1px;">Appointment Request Form</h5>
+                        <small class="text-muted">Standard 1-hour slots are managed to prevent crowding</small>
+                    </div>
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+                    <form asp-action="BookAppointment" method="post" id="appt-booking-form">
+                        @Html.AntiForgeryToken()
+                        
+                        <div asp-validation-summary="All" class="alert alert-danger mb-4" role="alert"></div>
+
+                        <!-- Date Selector -->
+                        <div class="mb-4">
+                            <label class="form-label font-monospace text-uppercase text-muted small fw-bold">1. Select Appointment Date</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="bi bi-calendar3 text-gold"></i></span>
+                                <input type="date" name="appointmentDate" id="appointmentDate" class="form-control form-control-lg" 
+                                       value="@targetDate.ToString("yyyy-MM-dd")" min="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")" />
+                            </div>
+                            <small class="text-muted d-block mt-1">Changing the date will automatically reload the available time slots below.</small>
+                        </div>
+
+                        <!-- Slot Selection -->
+                        <div class="mb-4">
+                            <label class="form-label font-monospace text-uppercase text-muted small fw-bold">2. Select Time Slot</label>
+                            
+                            <input type="hidden" name="timeSlot" id="selectedTimeSlot" />
+                            
+                            <div class="row g-3">
+                                @foreach (var slot in allSlots)
+                                {
+                                    var isBooked = bookedSlots.Contains(slot);
+                                    <div class="col-md-6 col-lg-4">
+                                        @if (isBooked)
+                                        {
+                                            <div class="p-3 border rounded text-center bg-light text-muted position-relative" 
+                                                 style="opacity: 0.65; cursor: not-allowed; border: 1.5px dashed #ccc !important;">
+                                                <i class="bi bi-lock-fill position-absolute text-danger" style="top: 8px; right: 12px; font-size: 0.8rem;"></i>
+                                                <strong class="d-block font-monospace text-uppercase small" style="font-size: 0.7rem;">@slot</strong>
+                                                <span class="badge bg-secondary mt-2 px-2 py-1" style="font-size: 0.6rem;">Booked</span>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="p-3 border rounded text-center slot-card font-monospace cursor-pointer position-relative text-uppercase text-dark" 
+                                                 style="cursor: pointer; border: 1.5px solid #ccc; transition: all 0.25s ease;"
+                                                 data-slot="@slot" onclick="selectSlot(this)">
+                                                <strong class="d-block font-monospace small" style="font-size: 0.7rem;">@slot</strong>
+                                                <span class="badge bg-success mt-2 px-2 py-1" style="font-size: 0.6rem;">Available</span>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                            <span class="text-danger font-monospace small mt-2 d-block" id="slot-error-msg"></span>
+                        </div>
+
+                        <!-- Notes/Remarks -->
+                        <div class="mb-4">
+                            <label class="form-label font-monospace text-uppercase text-muted small fw-bold">3. Notes / Specific Requests (Optional)</label>
+                            <textarea name="notes" class="form-control" rows="3" placeholder="e.g. Any medical details, medications, or scheduling adjustments..." style="border-radius: 8px;"></textarea>
+                        </div>
+
+                        <!-- Submit Buttons -->
+                        <div class="d-grid gap-2 mt-5">
+                            <button type="submit" class="btn btn-gold btn-lg py-3 text-uppercase fw-bold shadow-sm" style="font-size: 0.85rem;">
+                                <i class="bi bi-calendar-check-fill me-2"></i> Submit Booking Request
+                            </button>
+                            <a asp-action="Appointments" class="btn btn-outline-secondary btn-lg py-3 text-uppercase fw-bold" style="font-size: 0.85rem;">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .cursor-pointer:hover {
+        background-color: #FDF6EC;
+        border-color: #B5894A !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(181, 137, 74, 0.15);
+    }
+    .slot-card-selected {
+        background: linear-gradient(135deg, #1C1A17 0%, #3D1212 100%) !important;
+        color: #D4AF37 !important;
+        border-color: #D4AF37 !important;
+        box-shadow: 0 4px 12px rgba(61, 18, 18, 0.25) !important;
+    }
+    .slot-card-selected .badge {
+        background-color: #B5894A !important;
+        color: #ffffff !important;
+    }
+</style>
+
+<script>
+    // Reload page when date is changed to fetch corresponding booked slots
+    document.getElementById('appointmentDate').addEventListener('change', function() {
+        const selectedDate = this.value;
+        if (selectedDate) {
+            window.location.href = '@Url.Action("BookAppointment", "Donor")?date=' + selectedDate;
+        }
+    });
+
+    function selectSlot(element) {
+        // Clear previous selections
+        document.querySelectorAll('.slot-card').forEach(card => {
+            card.classList.remove('slot-card-selected');
+        });
+
+        // Set selected style
+        element.classList.add('slot-card-selected');
+
+        // Set hidden input value
+        const slotValue = element.getAttribute('data-slot');
+        document.getElementById('selectedTimeSlot').value = slotValue;
+        document.getElementById('slot-error-msg').innerText = "";
+    }
+
+    document.getElementById('appt-booking-form').addEventListener('submit', function(e) {
+        const slot = document.getElementById('selectedTimeSlot').value;
+        if (!slot) {
+            e.preventDefault();
+            document.getElementById('slot-error-msg').innerText = "Please select an available time slot from the list above.";
+            document.getElementById('slot-error-msg').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    });
+</script>

@@ -1,0 +1,24 @@
+@{
+    ViewData["Title"] = "Registration Successful - Donora";
+}
+
+<div class="row justify-content-center py-5">
+    <div class="col-md-6 text-center">
+        <div class="card border-0 shadow-sm p-5">
+            <div style="font-size: 4rem;" class="mb-3 text-success">🎉</div>
+            <h1 style="font-family: 'Times New Roman', serif;" class="mb-3">Registration Successful!</h1>
+            <p class="text-muted mb-4">
+                Thank you for registering as a blood donor on the Donora platform. Your details have been securely recorded, and your profile is now active in the donor directory.
+            </p>
+            <div class="bg-light p-3 border rounded mb-4" style="background-color: #FDF6EC !important;">
+                <p class="small text-dark mb-0 font-monospace">
+                    <strong>Next Steps:</strong> You can now sign in to the Donor Portal using your registered email and your phone number as your password.
+                </p>
+            </div>
+            <div class="d-flex justify-content-center gap-2">
+                <a asp-controller="Account" asp-action="UserLogin" class="btn btn-primary text-uppercase">Sign In to Portal</a>
+                <a href="/" class="btn btn-secondary text-uppercase">Return Home</a>
+            </div>
+        </div>
+    </div>
+</div>

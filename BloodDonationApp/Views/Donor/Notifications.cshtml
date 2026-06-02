@@ -1,0 +1,94 @@
+@model IEnumerable<BloodDonationApp.Models.Notification>
+@{
+    Layout = "_UserLayout";
+    ViewData["Title"] = "My Notifications";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+    <h1 style="font-family: 'Times New Roman', serif;" class="text-dark">My Notifications</h1>
+    <span class="badge bg-secondary py-2 px-3 text-uppercase" style="background-color: #3D3530 !important;">Inbox</span>
+</div>
+
+<div class="card border-0 shadow-sm p-4" style="background-color: #FFFFFF; border: 1px solid #E8DDD5 !important;">
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-bell-slash text-muted fs-1 mb-3 d-block"></i>
+            <p class="text-muted fs-5">You have no notifications in your inbox.</p>
+        </div>
+    }
+    else
+    {
+        <div class="list-group">
+            @foreach (var item in Model)
+            {
+                var borderClass = item.Type switch
+                {
+                    "Success" => "border-success",
+                    "Warning" => "border-warning",
+                    _ => "border-info"
+                };
+
+                var bgClass = item.Type switch
+                {
+                    "Success" => "bg-success-subtle",
+                    "Warning" => "bg-warning-subtle",
+                    _ => "bg-info-subtle"
+                };
+
+                var textClass = item.Type switch
+                {
+                    "Success" => "text-success",
+                    "Warning" => "text-warning-dark", // We can define standard bootstrap or inline colors
+                    _ => "text-info"
+                };
+
+                var iconClass = item.Type switch
+                {
+                    "Success" => "bi-check-circle-fill",
+                    "Warning" => "bi-exclamation-triangle-fill",
+                    _ => "bi-info-circle-fill"
+                };
+
+                var badgeBg = item.Type switch
+                {
+                    "Success" => "bg-success",
+                    "Warning" => "bg-warning text-dark",
+                    _ => "bg-info text-white"
+                };
+
+                <div class="list-group-item flex-column align-items-start p-4 mb-3 border rounded shadow-sm position-relative @(item.IsRead ? "" : "fw-bold shadow")"
+                     style="border-left: 5px solid @(item.Type == "Success" ? "#198754" : item.Type == "Warning" ? "#ffc107" : "#0dcaf0") !important; @(item.IsRead ? "opacity: 0.85;" : "background-color: #FAF6EE;")"
+                     id="notification_@item.Id">
+                    
+                    <div class="d-flex w-100 justify-content-between align-items-start mb-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi @iconClass fs-5" style="color: @(item.Type == "Success" ? "#198754" : item.Type == "Warning" ? "#d39e00" : "#0dcaf0")"></i>
+                            <h5 class="mb-0" style="font-family: 'Times New Roman', serif;">@item.Title</h5>
+                            <span class="badge @badgeBg text-uppercase px-2" style="font-size: 0.7rem;">@item.Type</span>
+                            @if (!item.IsRead)
+                            {
+                                <span class="badge bg-danger text-uppercase px-2" style="font-size: 0.7rem;">New</span>
+                            }
+                        </div>
+                        <small class="text-muted">@item.CreatedAt.ToString("g")</small>
+                    </div>
+                    
+                    <p class="mb-3 text-secondary" style="font-size: 0.95rem;">@item.Message</p>
+                    
+                    @if (!item.IsRead)
+                    {
+                        <div class="text-end">
+                            <form asp-controller="Donor" asp-action="MarkNotificationRead" asp-route-id="@item.Id" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-dark text-uppercase fw-bold" style="font-size: 0.75rem; border-color: #3D3530; color: #3D3530;" id="btnReadNotification_@item.Id">
+                                    <i class="bi bi-check2 me-1"></i> Mark as Read
+                                </button>
+                            </form>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>

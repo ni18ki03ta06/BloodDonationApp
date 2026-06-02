@@ -1,0 +1,134 @@
+@model BloodDonationApp.Models.Donor
+@{
+    Layout = "_UserLayout";
+    ViewData["Title"] = "My Donor QR Card";
+}
+
+<div class="animate-fade-in">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <div>
+            <h1 class="h2 mb-1">My Digital Donor Card</h1>
+            <p class="text-muted small mb-0">Present this QR code at donation camps for instant check-in</p>
+        </div>
+        <a asp-action="Dashboard" class="btn btn-secondary btn-sm">&larr; Back to Dashboard</a>
+    </div>
+
+    <div class="row justify-content-center my-5">
+        <div class="col-md-6 col-lg-5 col-xl-4 text-center">
+            
+            <!-- Donor Card to Render -->
+            <div id="donor-id-card-render" class="donor-id-card mx-auto shadow-lg text-start mb-4">
+                <div class="card-top-accent"></div>
+                <div class="card-inner p-4">
+                    <!-- Brand / Logo -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="d-flex align-items-center">
+                            <span class="fs-4 me-2">🩸</span>
+                            <div>
+                                <span class="fw-bold tracking-wider text-danger fs-5" style="font-family: 'Outfit', sans-serif;">DONORA</span>
+                                <div class="text-muted font-monospace" style="font-size: 0.6rem; margin-top: -3px;">LIFESAVER PROFILE</div>
+                            </div>
+                        </div>
+                        <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3 py-1 font-monospace text-uppercase" style="font-size: 0.65rem;">
+                            Verified Donor
+                        </span>
+                    </div>
+
+                    <!-- Main content -->
+                    <div class="row align-items-center mb-4">
+                        <!-- Left: QR Code -->
+                        <div class="col-6 text-center border-end">
+                            <img src="data:image/png;base64,@ViewBag.QrCodeBase64" class="img-fluid rounded p-2 bg-white border" alt="Donor QR Code" style="max-height: 120px;" />
+                            <div class="text-muted font-monospace mt-2" style="font-size: 0.6rem; word-break: break-all;">
+                                ID: @Model.Id.ToString("D6")
+                            </div>
+                        </div>
+                        <!-- Right: Blood Type -->
+                        <div class="col-6 text-center">
+                            <span class="text-muted text-uppercase tracking-wider small d-block font-monospace" style="font-size: 0.65rem;">Blood Type</span>
+                            <div class="display-4 fw-black text-danger font-serif">@Model.BloodType</div>
+                            <span class="badge @(Model.IsAvailable ? "bg-success" : "bg-warning text-dark") rounded-pill py-1 px-2 mt-1 font-monospace" style="font-size: 0.65rem;">
+                                @(Model.IsAvailable ? "Available" : "Busy")
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Footer / Details -->
+                    <div class="pt-3 border-top">
+                        <div class="row g-2">
+                            <div class="col-12">
+                                <span class="text-muted text-uppercase small font-monospace d-block" style="font-size: 0.6rem;">Full Name</span>
+                                <span class="fw-bold text-dark fs-5">@Model.Name</span>
+                            </div>
+                            <div class="col-6">
+                                <span class="text-muted text-uppercase small font-monospace d-block" style="font-size: 0.6rem;">Rank Level</span>
+                                <span class="text-dark fw-bold font-monospace" style="font-size: 0.85rem;">Level @Model.Level</span>
+                            </div>
+                            <div class="col-6 text-end">
+                                <span class="text-muted text-uppercase small font-monospace d-block" style="font-size: 0.6rem;">Lifetime Points</span>
+                                <span class="text-danger fw-bold font-monospace" style="font-size: 0.85rem;">@Model.LifetimePoints pts</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Exporter triggers -->
+            <button id="btnDownloadCard" class="btn btn-danger px-4 py-2 text-uppercase fw-bold shadow-sm rounded-pill mt-3">
+                <i class="bi bi-download me-2"></i>Download ID Card (PNG)
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .donor-id-card {
+        width: 350px;
+        background: linear-gradient(135deg, #ffffff 0%, #fcfcfc 100%);
+        border-radius: 20px;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(0,0,0,0.06);
+    }
+    
+    .card-top-accent {
+        height: 6px;
+        background: linear-gradient(90deg, #C0392B 0%, #E74C3C 100%);
+    }
+
+    .fw-black {
+        font-weight: 800;
+    }
+
+    [data-theme="dark"] .donor-id-card {
+        background: linear-gradient(135deg, #1A1A2E 0%, #151525 100%);
+        border-color: rgba(255,255,255,0.08);
+    }
+
+    [data-theme="dark"] .donor-id-card .text-dark {
+        color: #E2E8F0 !important;
+    }
+</style>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $("#btnDownloadCard").click(function () {
+                const card = document.getElementById("donor-id-card-render");
+                const donorName = "@Model.Name.Replace(" ", "_")";
+                
+                html2canvas(card, {
+                    scale: 3,
+                    useCORS: true,
+                    backgroundColor: document.documentElement.getAttribute("data-theme") === "dark" ? "#151525" : "#ffffff"
+                }).then(function (canvas) {
+                    const link = document.createElement("a");
+                    link.download = `Donora_ID_${donorName}.png`;
+                    link.href = canvas.toDataURL("image/png");
+                    link.click();
+                });
+            });
+        });
+    </script>
+}

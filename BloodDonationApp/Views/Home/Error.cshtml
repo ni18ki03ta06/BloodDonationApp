@@ -1,0 +1,55 @@
+@model ErrorViewModel
+@{
+    ViewData["Title"] = "Error";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <div class="card border-0 shadow-lg p-5 animate-card" style="background-color: #FFFFFF; border-top: 5px solid #9B3A3A !important;">
+                <div class="card-body">
+                    <div class="mb-4 text-danger animate-bounce">
+                        <i class="bi bi-exclamation-triangle-fill" style="font-size: 4.5rem; color: #9B3A3A;"></i>
+                    </div>
+
+                    <h2 class="mb-3 text-uppercase fw-bold" style="color: #5C1A1A; font-family: 'Times New Roman', serif; letter-spacing: 1.5px;">
+                        System Error
+                    </h2>
+
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger border-0 py-3 mb-4 text-start" style="background-color: #FDF2F2; color: #9B3A3A; font-family: Georgia, serif; border-left: 4px solid #9B3A3A !important;">
+                            <i class="bi bi-info-circle-fill me-2"></i>@TempData["ErrorMessage"]
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted fs-5 mb-4" style="font-family: Georgia, serif; line-height: 1.6;">
+                            An unexpected error occurred while processing your request. The technical logs have captured this incident, and our team is investigating.
+                        </p>
+                    }
+
+                    @if (Model != null && Model.ShowRequestId)
+                    {
+                        <div class="bg-light p-3 rounded mb-4 text-start font-monospace border" style="font-size: 0.85rem; border-color: #E8DDD5 !important; background-color: #FBF7F0 !important;">
+                            <strong style="color: #5C1A1A;">Request ID:</strong> <code>@Model.RequestId</code>
+                            <br />
+                            <small class="text-muted">Please quote this ID when contacting support.</small>
+                        </div>
+                    }
+
+                    <hr class="my-4" style="border-color: #E8DDD5;" />
+
+                    <div class="d-flex justify-content-center gap-3 flex-wrap">
+                        <a href="/" class="btn btn-primary px-4 py-2">
+                            <i class="bi bi-house-door me-2"></i>Return Home
+                        </a>
+                        <a href="javascript:history.back()" class="btn btn-outline-dark px-4 py-2">
+                            <i class="bi bi-arrow-left me-2"></i>Go Back
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
