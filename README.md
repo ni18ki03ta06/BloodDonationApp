@@ -236,12 +236,10 @@ This project is licensed under the MIT License - see LICENSE file for details.
 
 ## 📧 Contact
 
-For questions or support, please contact: [your-email@example.com]
+For questions or support, please contact: [nikitabansod22@gmail.com]
 
 **Last Updated:** June 2, 2026
 
----
-📸 Screenshots
 
 
 ## 🗺️ Application Walkthrough & Screenshots
@@ -443,5 +441,6 @@ To ensure maximum readability, the screenshots are presented in logical user-flo
 #### 46. Portal Settings (Configurations)
 ![Portal Settings (Configurations)](images/46-admin-portal-settings.png)
 *Platform-wide configuration forms allowing admins to manage the site name, notification emails, and toggle automatic emergency broadcast parameters.*
-
-
+---
+**Last Updated:** June 2, 2026
+---
