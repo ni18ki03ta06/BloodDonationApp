@@ -247,3 +247,7 @@ For questions or support, please contact: [your-email@example.com]
 ---
 
 **Last Updated:** June 2, 2026
+
+---
+📸 Screenshots
+
