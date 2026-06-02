@@ -245,6 +245,287 @@ For questions or support, please contact: [your-email@example.com]
 - [Swagger Documentation](https://swagger.io/)
 
 ---
+# Donora - Blood Donation & Inventory Management System
+
+[![.NET 8.0](https://img.shields.io/badge/.NET-8.0-purple?style=for-the-badge&logo=dotnet)](https://dotnet.microsoft.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](https://opensource.org/licenses/MIT)
+[![ML.NET](https://img.shields.io/badge/Machine%20Learning-ML.NET-orange?style=for-the-badge)](https://dotnet.microsoft.com/en-us/apps/machinelearning-ai/ml-dotnet)
+[![Architecture](https://img.shields.io/badge/Architecture-Clean%20Architecture-blue?style=for-the-badge)]()
+
+**Donora** is a premium, state-of-the-art Blood Donation and Inventory Management application built using **ASP.NET Core 8.0**. Designed as a digital bridge between voluntary blood donors, patients in urgent need, and healthcare institutions, Donora provides a complete dashboard-driven portal experience, gamified achievements, real-time matching via interactive proximity maps, and predictive AI-powered stock forecasting.
+
+---
+
+## 🏗️ Core Architecture & Features
+
+- **Double Portal Interface**: Distinct, tailored experiences for **Donors** and **Administrators**.
+- **Real-Time Proximity Maps**: Integrates Leaflet.js mapping to find nearby donors and blood drives.
+- **Smart AI Recommendations**: Instantly matches patient requests with the closest compatible donor.
+- **Machine Learning Forecasting**: Powered by **ML.NET** to predict weekly demand and forecast stock shortage risks.
+- **Gamified Achievements**: Level ranks, streaks, lifetime reward points, unlockable badges, and donor leaderboards.
+- **Milestone Rewards Store**: Allows donors to redeem accumulated points for milestone gifts.
+- **Digital Donor Cards**: QR-enabled digital cards for quick scan-in and eligibility verification at blood camps.
+- **Advanced Reporting**: Custom analytics with CSV, Excel, and PDF data exporters.
+- **System Administration & Auditing**: Strict role hierarchies (Admin/SuperAdmin), configurations, and security audit logs.
+
+---
+
+## 📂 Project Structure
+
+Below is the directory layout for the application's visual assets:
+
+```text
+images/
+├── 01-landing-page.png
+├── 02-public-blood-stock-upper.png
+├── 03-public-blood-stock-lower.png
+├── 04-about-us-upper.png
+├── 05-about-us-lower.png
+├── 06-contact-us.png
+├── 07-donor-registration-upper.png
+├── 08-donor-registration-lower.png
+├── 09-donor-login.png
+├── 10-admin-login.png
+├── 11-donor-dashboard-upper.png
+├── 12-donor-dashboard-lower.png
+├── 13-donor-notifications.png
+├── 14-donor-profile.png
+├── 15-donor-toggle-availability.png
+├── 16-donor-appointment-calendar.png
+├── 17-donor-blood-request.png
+├── 18-donor-directory-search.png
+├── 19-donor-map-standard.png
+├── 20-donor-blood-camps.png
+├── 21-donor-history-badges.png
+├── 22-donor-history-records.png
+├── 23-donor-digital-id.png
+├── 24-donor-card-qr-details.png
+├── 25-donor-leaderboard.png
+├── 26-donor-achievements-rewards.png
+├── 27-donor-rewards-store.png
+├── 28-admin-dashboard-overview.png
+├── 29-admin-ai-matching-analytics.png
+├── 30-admin-recent-activity.png
+├── 31-admin-manage-requests.png
+├── 32-admin-user-management.png
+├── 33-admin-advanced-analytics-upper.png
+├── 34-admin-advanced-analytics-lower.png
+├── 35-admin-demand-forecasting-upper.png
+├── 36-admin-demand-forecasting-charts.png
+├── 37-admin-demand-forecasting-insights.png
+├── 38-admin-platform-visualizations.png
+├── 39-admin-inventory-stock-management.png
+├── 40-admin-appointments-manager.png
+├── 41-donor-map-details.png
+├── 42-admin-manage-administrators.png
+├── 43-admin-system-audit-log.png
+├── 44-admin-user-feedback.png
+├── 45-admin-qr-scan-history.png
+└── 46-admin-portal-settings.png
+```
+
+---
+
+## 🗺️ Application Walkthrough & Screenshots
+
+To ensure maximum readability, the screenshots are presented in logical user-flow sequence: **Guest Experience & Registration** ➡️ **Donor Portal & Gamification** ➡️ **Admin Panel & ML Analytics**.
+
+---
+
+### 🌐 Guest Portal & Informational Pages
+
+#### 1. Platform Landing Page
+![Platform Landing Page](images/01-landing-page.png)
+*The entry screen of the application offering split glassmorphic pathways to either the Donor Portal or Admin Portal, paired with the core platform mission.*
+
+#### 2. Public Blood Stock - Availability Cards
+![Public Blood Stock - Availability Cards](images/02-public-blood-stock-upper.png)
+*Real-time overview of the public stock levels categorized into Critical (<5 units), Low (5-15 units), and Good (>15 units) for O+, O-, A+, and A- blood types.*
+
+#### 3. Public Blood Stock - Actions & Request Shortcut
+![Public Blood Stock - Actions & Request Shortcut](images/03-public-blood-stock-lower.png)
+*Lower half of the public stock levels showing B+, B-, AB+, and AB- blood types with rapid action shortcuts to register as a donor or submit a patient request.*
+
+#### 4. About Us - Core Values
+![About Us - Core Values](images/04-about-us-upper.png)
+*Explains the core mission of the platform, detailing the dedication to safety first, community benefit, and direct connection channels.*
+
+#### 5. About Us - The Donation Journey & Stats
+![About Us - The Donation Journey & Stats](images/05-about-us-lower.png)
+*Walks potential donors through the 4 core steps of the donation journey, backed by platform statistics such as voluntary donor counts and lives impacted.*
+
+#### 6. Contact Us & Helpdesk
+![Contact Us & Helpdesk](images/06-contact-us.png)
+*A public form for user inquiries, suggestions, and feedback, alongside office location markers and the emergency hotline details.*
+
+#### 7. Donor Registration - Step 1
+![Donor Registration - Step 1](images/07-donor-registration-upper.png)
+*The primary portion of the registration form collecting basic personal details, blood group type, state, city, and account credentials.*
+
+#### 8. Donor Registration - Step 2
+![Donor Registration - Step 2](images/08-donor-registration-lower.png)
+*The secondary portion of the registration form containing address fields, age, gender validation, last donation date, profile picture upload, and terms consent.*
+
+#### 9. Donor Portal Login
+![Donor Portal Login](images/09-donor-login.png)
+*Secure authentication screen for registered donors to log in and manage their profiles.*
+
+#### 10. Admin Portal Login
+![Admin Portal Login](images/10-admin-login.png)
+*Restricted admin login gate for system administrators and managers.*
+
+---
+
+### 🩸 Donor Portal Experience
+
+#### 11. Donor Dashboard - Welcome & KPI Cards
+![Donor Dashboard - Welcome & KPI Cards](images/11-donor-dashboard-upper.png)
+*The main donor hub displaying the logged-in donor's current tier (e.g. Regular Hero), availability toggle, blood type verification, next eligibility timer, and critical emergency banners.*
+
+#### 12. Donor Dashboard - Stock Levels & Guidelines
+![Donor Dashboard - Stock Levels & Guidelines](images/12-donor-dashboard-lower.png)
+*The bottom half of the donor dashboard providing quick-action links (profile edits, blood requests) and crucial medical donation guidelines.*
+
+#### 13. My Notifications
+![My Notifications](images/13-donor-notifications.png)
+*Real-time alerts center informing donors of urgent matching blood requests in their city or updates on their eligibility verification status.*
+
+#### 14. Donor Profile & Milestones
+![Donor Profile & Milestones](images/14-donor-profile.png)
+*Detailed profile page displaying donor statistics, personal records, level milestones, and unlocked contribution achievement timelines.*
+
+#### 15. Toggle Donation Availability
+![Toggle Donation Availability](images/15-donor-toggle-availability.png)
+*Donor privacy toggle allowing them to instantly update their search visibility status for emergency match-making queries.*
+
+#### 16. My Donation Appointments
+![My Donation Appointments](images/16-donor-appointment-calendar.png)
+*Interactive calendar system allowing donors to schedule future donations, choose scheduling slots, and review scheduling histories.*
+
+#### 17. Submit a Blood Request
+![Submit a Blood Request](images/17-donor-blood-request.png)
+*Form allowing authenticated donors to submit request tickets for family members or patients, specifying units required, urgency, and anonymity status.*
+
+#### 18. Search Blood Donors (Directory)
+![Search Blood Donors (Directory)](images/18-donor-directory-search.png)
+*A searchable directory of active voluntary donors filters by city, blood type, age range, and verification status with direct options to submit requests to specific donors.*
+
+#### 19. Proximity Map Finder - Proximity View
+![Proximity Map Finder - Proximity View](images/19-donor-map-standard.png)
+*Interactive Leaflet proximity map locating compatible donors and upcoming donation camps in the donor's vicinity.*
+
+#### 20. Proximity Map Finder - Contact Info Detail
+![Proximity Map Finder - Contact Info Detail](images/41-donor-map-details.png)
+*Expanded map view showing specific distances (e.g. 3.1 km) and revealing verified contact details (phone, email) for matched donors.*
+
+#### 21. Blood Donation Camps
+![Blood Donation Camps](images/20-donor-blood-camps.png)
+*Upcoming donation camp calendar showcasing host organizations, locations, slot availability, and registration options.*
+
+#### 22. Donation History & Earned Badges
+![Donation History & Earned Badges](images/21-donor-history-badges.png)
+*Showcases gamified donor profile rewards including unlocked badges (First Drop, Life Saver, Emergency Responder) and personal donation trends.*
+
+#### 23. Donation Records & Certification
+![Donation Records & Certification](images/22-donor-history-records.png)
+*Tracks completed historical donation entries with dates, units donated, hospital names, status validations, and printable donation certificates.*
+
+#### 24. Donor Digital ID Card
+![Donor Digital ID Card](images/23-donor-digital-id.png)
+*The verified digital identification pass containing the donor's verification ID, QR code, state, and total donation count.*
+
+#### 25. Printable Digital Donor Card
+![Printable Digital Donor Card](images/24-donor-card-qr-details.png)
+*A specialized overlay card view displaying donor rankings (Level 4), lifetime points (950 pts), and a printable card download option.*
+
+#### 26. Leaderboard - Top Contributors
+![Leaderboard - Top Contributors](images/25-donor-leaderboard.png)
+*Ranks the top donors in the Donora community based on donation counts, streaks, level tiers, badges, and points.*
+
+#### 27. Achievements & Rewards - Level Details
+![Achievements & Rewards - Level Details](images/26-donor-achievements-rewards.png)
+*Displays points breakdown (XP Progress) for gamification tiers (e.g. Gold Lifesaver) and tracks spendable reward points.*
+
+#### 28. Milestone Rewards Store
+![Milestone Rewards Store](images/27-donor-rewards-store.png)
+*A store interface where donors can spend their reward points to redeem milestone gifts (e.g. custom T-shirts, First Aid kits).*
+
+---
+
+### 🛡️ Administrative Portal
+
+#### 29. Admin Dashboard - KPI Summary
+![Admin Dashboard - KPI Summary](images/28-admin-dashboard-overview.png)
+*The central administrative hub showing critical telemetry (Emergency cases, Pending requests, Approved requests, Total registered donors) and live inventory stocks.*
+
+#### 30. Admin Dashboard - AI Recommendations & Insights
+![Admin Dashboard - AI Recommendations & Insights](images/29-admin-ai-matching-analytics.png)
+*Visualizes real-time AI-powered matching recommendations to instantly suggest best-fit nearby donors for pending critical patient requests, accompanied by request charts.*
+
+#### 31. Admin Dashboard - Recent Activity Tables
+![Admin Dashboard - Recent Activity Tables](images/30-admin-recent-activity.png)
+*Summary tables displayed at the bottom of the admin dashboard for quick access to the latest registered donors and pending blood requests.*
+
+#### 32. Manage Blood Requests
+![Manage Blood Requests](images/31-admin-manage-requests.png)
+*Comprehensive request queue displaying patient details, required date, urgency, and status filters, with direct matching donor options.*
+
+#### 33. User Accounts Management
+![User Accounts Management](images/32-admin-user-management.png)
+*A centralized roster of all registered user and administrator accounts, displaying details, roles, credentials, and real-time status.*
+
+#### 34. Advanced Analytics Dashboard - KPIs & Data Exports
+![Advanced Analytics Dashboard - KPIs & Data Exports](images/33-admin-advanced-analytics-upper.png)
+*Displays advanced platform analytics with instant data exporters for Donors, Requests, and Histories in CSV, Excel, and PDF formats.*
+
+#### 35. Advanced Analytics Dashboard - Visualizations
+![Advanced Analytics Dashboard - Visualizations](images/34-admin-advanced-analytics-lower.png)
+*Detailed visual trend charts tracking platform activity, donor blood group distributions, and donor badge tier distributions.*
+
+#### 36. ML.NET Demand Forecasting - Stock Shortage Risk Predictions
+![ML.NET Demand Forecasting - Stock Shortage Risk Predictions](images/35-admin-demand-forecasting-upper.png)
+*State-of-the-art predictive module leveraging ML.NET to calculate stock shortage risks (Next 4 Weeks) and output low stock alerts.*
+
+#### 37. ML.NET Demand Forecasting - Inventory vs. Predicted Demand
+![ML.NET Demand Forecasting - Inventory vs. Predicted Demand](images/36-admin-demand-forecasting-charts.png)
+*Machine learning analytics visualization charting current stocks against next week's predicted demand and recommended stock levels.*
+
+#### 38. ML.NET Demand Forecasting - Insights & Performance
+![ML.NET Demand Forecasting - Insights & Performance](images/37-admin-demand-forecasting-insights.png)
+*Deep-dive insights revealing monthly demand volumes, high-demand blood groups (ranked by forecast size), and monthly performance metrics.*
+
+#### 39. Platform Stats & Visualizations
+![Platform Stats & Visualizations](images/38-admin-platform-visualizations.png)
+*Telemetry graphs showing donation timelines, blood type spreads, request fulfillment rates, and donor availability dynamics.*
+
+#### 40. Blood Inventory Stock Management
+![Blood Inventory Stock Management](images/39-admin-inventory-stock-management.png)
+*A dedicated ledger allowing admins to view available vs. reserved units and manually adjust physical stock counts for all 8 blood groups.*
+
+#### 41. Appointments Manager
+![Appointments Manager](images/40-admin-appointments-manager.png)
+*Renders a scheduling calendar and appointment queue tracking pending, approved, and completed donation appointments.*
+
+#### 42. Manage System Administrators
+![Manage System Administrators](images/42-admin-manage-administrators.png)
+*An access-restricted settings view specifically for Super Administrators to add, edit, or remove staff and administrative accounts.*
+
+#### 43. System Audit Log
+![System Audit Log](images/43-admin-system-audit-log.png)
+*A security audit trail logging system events, actors, actions, and altered entities for transparency.*
+
+#### 44. User Feedback & Helpdesk
+![User Feedback & Helpdesk](images/44-admin-user-feedback.png)
+*The administrative support queue tracking incoming feedback, questions, or issues submitted by public users.*
+
+#### 45. QR Scan History Log
+![QR Scan History Log](images/45-admin-qr-scan-history.png)
+*Audit trail recording every instance of digital donor ID card scans at donation camps for security and validation.*
+
+#### 46. Portal Settings (Configurations)
+![Portal Settings (Configurations)](images/46-admin-portal-settings.png)
+*Platform-wide configuration forms allowing admins to manage the site name, notification emails, and toggle automatic emergency broadcast parameters.*
+
 
 **Last Updated:** June 2, 2026
 
