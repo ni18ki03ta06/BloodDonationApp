@@ -1,4 +1,46 @@
-## Ignore Visual Studio temporary files, build results, and user-specific settings
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio cache/options
+.vs/
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# Rider
+.idea/
+*.sln.iml
+*.sw?
+*.swp
+*.swo
+
+# NuGet
+*.nuget.props
+*.nuget.targets
+.nuget/
+
+# Entity Framework
+*.db
+*.sqlite
+*.sqlite3
+
+# Application logs
+logs/
+*.log
 
 # User-specific files
 *.rsuser
@@ -7,49 +49,60 @@
 *.userosscache
 *.sln.docstates
 
-# User-specific files (MonoDevelop/Xamarin Studio)
-*.userprefs
+# Test Results
+TestResults/
+*.trx
+*.coverage
 
-# Mono auto generated files
-mono_crash.*
+# Local environment files
+.env
+.env.local
+*.env
 
-# Build results
-[Dd]ebug/
-[Dd]ebugPublic/
-[Rr]elease/
-[Re]leasePublic/
-x64/
-x86/
-SDKRedirects/
-bld/
-[Bb]in/
-[Oo]bj/
-[Log]/
+# Published files
+publish/
+PublishProfiles/
 
-# Visual Studio 2015/2017/2019/2022 cache directory
-.vs/
-# File security data containing table of contents
-secdata.dat
+# Backup files
+*.bak
+*.backup
+*~
 
-# SQL Server files
-*.mdf
-*.ldf
-*.ndf
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
 
-# SQLite databases (local dev DBs)
+# ReSharper is a .NET coding add-in
+.resharper
+*.resharper
+.ReSharper.user
+
+# Temporary build files
+bin/
+obj/
+
+# Package Manager Files
+packages/
+!packages/repositories.config
+*.nupkg
+*.snupkg
+
+# Coverage Report
+CoverageReport/
+coverage.opencover.xml
+coverage.cobertura.xml
+
+# BenchmarkDotNet
+BenchmarkDotNet.Artifacts/
+
+# Project specific
+appsettings.Development.json
+appsettings.Production.json
+.DS_Store
 *.db-shm
 *.db-wal
 
-# Docker
-.dockerignore
-docker-compose.override.yml
-
-# Personal environment settings
-.env
-.env.local
-
-# Rider
-.idea/
-
-# Mac OS files
-.DS_Store
+# Generated files
+*.designer.cs
