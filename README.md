@@ -443,6 +443,3 @@ To ensure maximum readability, the screenshots are presented in logical user-flo
 #### 46. Portal Settings (Configurations)
 ![Portal Settings (Configurations)](images/46-admin-portal-settings.png)
 *Platform-wide configuration forms allowing admins to manage the site name, notification emails, and toggle automatic emergency broadcast parameters.*
----
-**Last Updated:** June 2, 2026
----
